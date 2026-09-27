@@ -25,7 +25,7 @@ PRs para main e pushes na main executam **Terraform CI**, com check **terraform-
 2. Conferir o job **check-backend** e o resumo **Terraform S3 backend check passed**.
 3. Em caso de falha, consultar a etapa que falhou; não executar force-unlock ou excluir um lock sem confirmar que não há execução ativa.
 
-Usa as mesmas variáveis AWS_ROLE_ARN e AWS_REGION e confiança OIDC do teste de identidade. Somente execução manual na main, sem GitHub Environment. `concurrency` evita sobreposição deste workflow; o lock S3 protege operações Terraform cooperantes fora dele também.
+Usa o Repository Secret AWS_ROLE_ARN e a Repository Variable AWS_REGION e confiança OIDC do teste de identidade. Somente execução manual na main, sem GitHub Environment. `concurrency` evita sobreposição deste workflow; o lock S3 protege operações Terraform cooperantes fora dele também.
 
 O workflow recusa um estado existente com recursos ou outputs. `make backend-check` executa init, validate e plan com locking, exigindo código de saída zero. Não existe apply neste fluxo. A primeira inicialização pode gravar um estado vazio; Terraform cria e libera o lock nas operações necessárias. Não envia estado ou plano como artefatos e não mostra conteúdo do estado no preflight.
 
@@ -43,4 +43,4 @@ O workflow não consulta nem altera essas proteções: a role atual não tem as 
 
 Referência: [backend S3 do Terraform](https://developer.hashicorp.com/terraform/language/backend/s3).
 
-A conta permitida é derivada da Repository Variable AWS_ROLE_ARN. O workflow exporta EXPECTED_ACCOUNT e make backend-check a fornece ao init via configuração parcial do backend. Para uso local desse alvo, exportar EXPECTED_ACCOUNT com os 12 dígitos da conta correspondente à role antes de executar. O ID não fica fixo no código; a restrição de conta continua ativa. Nenhuma variável nova no GitHub é necessária.
+A conta permitida é derivada da Repository Secret AWS_ROLE_ARN. O workflow exporta EXPECTED_ACCOUNT e make backend-check a fornece ao init via configuração parcial do backend. Para uso local desse alvo, exportar EXPECTED_ACCOUNT com os 12 dígitos da conta correspondente à role antes de executar. O ID não fica fixo no código; a restrição de conta continua ativa. O ARN deve estar em Secrets para permitir mascaramento nos logs desde o início; AWS_REGION permanece em Variables.
