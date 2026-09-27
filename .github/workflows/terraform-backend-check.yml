@@ -1,0 +1,92 @@
+name: Terraform backend check
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: fiapx-infra-terraform-state
+  cancel-in-progress: false
+
+jobs:
+  check-backend:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_PAGER: ''
+      TF_IN_AUTOMATION: 'true'
+      TF_WORKSPACE: default
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$AWS_ROLE_ARN" != 'arn:aws:iam::388799375729:role/fiapx-infra-github-actions' || "$AWS_REGION" != 'us-east-1' ]]; then
+            echo '::error::Configure AWS_ROLE_ARN and AWS_REGION with the expected role and region.'
+            exit 1
+          fi
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
+        with:
+          terraform_version: 1.14.7
+          terraform_wrapper: false
+
+      - name: Validate Terraform locally
+        run: make verify
+
+      - name: Authenticate using OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: '388799375729'
+          role-session-name: fiapx-backend-${{ github.run_id }}
+          role-duration-seconds: 900
+          unset-current-credentials: true
+          retry-max-attempts: 2
+
+      - name: Refuse a state that already manages resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          bucket='fiap-fase-05'
+          key='fiapx-infra/tfstate/terraform.tfstate'
+          listing="$(aws s3api list-objects-v2 --bucket "$bucket" --prefix "$key" --output json)"
+          exists="$(jq --arg key "$key" '[.Contents[]? | select(.Key == $key)] | length' <<< "$listing")"
+          if [[ "$exists" != '0' ]]; then
+            state_file="$(mktemp)"
+            trap 'rm -f "$state_file"' EXIT
+            aws s3api get-object --bucket "$bucket" --key "$key" "$state_file" > /dev/null
+            if ! jq -e '(.version == 4) and ((.resources | type) == "array") and ((.resources | length) == 0) and (((.outputs // {}) | length) == 0)' "$state_file" > /dev/null; then
+              echo '::error::Existing state is not empty. Use the configuration that owns it; this bootstrap check will not proceed.'
+              exit 1
+            fi
+          fi
+
+      - name: Check S3 backend and native locking
+        run: make backend-check
+
+      - name: Record result
+        shell: bash
+        run: |
+          {
+            echo '### Terraform S3 backend check passed'
+            echo ''
+            echo 'Initialization, validation and a no-change plan completed with S3 locking enabled.'
+            echo 'Bucket: fiap-fase-05; key: fiapx-infra/tfstate/terraform.tfstate; region: us-east-1.'
+            echo 'No apply or infrastructure provisioning was performed.'
+            echo 'Bucket versioning, public access protection and concurrent lock contention were not tested.'
+          } >> "$GITHUB_STEP_SUMMARY"
