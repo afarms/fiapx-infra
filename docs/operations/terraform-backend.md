@@ -19,6 +19,8 @@ Instalar Terraform 1.14.7 e GNU Make. Na raiz do repositório, executar `make ve
 
 ## Execução real após o merge
 
+PRs para main e pushes na main executam **Terraform CI**, com check **terraform-validate** (make verify, sem credenciais AWS ou inicialização do backend remoto). Configurar exatamente `terraform-validate` como status check obrigatório no ruleset de main. Os workflows manuais OIDC/backend não devem ser obrigatórios para merge, pois só executam na main após integração.
+
 1. Abrir **Actions → Terraform backend check → Run workflow → main**.
 2. Conferir o job **check-backend** e o resumo **Terraform S3 backend check passed**.
 3. Em caso de falha, consultar a etapa que falhou; não executar force-unlock ou excluir um lock sem confirmar que não há execução ativa.
