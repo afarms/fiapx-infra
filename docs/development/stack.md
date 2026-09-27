@@ -1,0 +1,47 @@
+# Stack e política de versões
+
+Estado: identidade e consultas de vídeos implementadas com testes, Compose/PostgreSQL e CI. Infraestrutura possui backend Terraform configurado e autenticação OIDC validada; execução do backend e deploy das aplicações ainda pendentes.
+
+| Item | Decisão / estado |
+| --- | --- |
+| Java | 21 |
+| Spring Boot | 4.1.1, utilizada nos builds dos serviços |
+| Maven | Wrapper 3.9.16; scripts executados pelo Makefile com Git Bash no Windows |
+| PostgreSQL | 17; Compose usa postgres:17.11-alpine3.24; RDS privado em us-east-1 planejado, patch a confirmar |
+| Persistência | Liquibase SQL; JPA/Hibernate na infraestrutura; ddl-auto=validate, open-in-view=false |
+| Arquitetura | Clean Architecture, core sem Spring/JPA; gateways no core; beans próprios centralizados em BeanConfig |
+| Testes | JUnit/Mockito; JaCoCo com gate de 90% em linhas e branches; core compilado isoladamente |
+| OpenAPI | springdoc 3.1.1; Swagger e documentação HTTP validados localmente |
+| Containers | Rancher Desktop/Moby; imagens multi-stage JDK → JRE Alpine 21.0.12_8, usuário não-root |
+| Terraform | 1.14.7; backend S3 existente com locking nativo; sem recursos de aplicação nesta etapa |
+| GitHub Actions | CI de serviços e infraestrutura; autenticação AWS via OIDC, sem chaves permanentes |
+| AWS | us-east-1; EKS, RDS privado e acesso SSM planejados |
+| Secrets Manager | Um único secret agregado planejado; credenciais SQL distintas; distribuição e rotação a detalhar |
+| Mensageria | Amazon SQS com DLQs; topologia Standard proposta, contratos e políticas operacionais a fechar |
+| Arquivos | S3 privado previsto para mídia; bucket e fluxo de upload ainda não implementados |
+| Autenticação | Serviço próprio, BCrypt, JWT RS256 de 30 minutos, verificação de conta/versão a cada consulta protegida; sem renovação automática |
+| Processamento | FFmpeg no worker planejado; versão e empacotamento a definir |
+| Frontend | HTML/JavaScript em S3 + CloudFront planejado; JWT em memória |
+| Notificações | Avisos persistidos na interface, sem e-mail; serviço ainda planejado |
+| Observabilidade | Probes HTTP disponíveis; ferramentas e arquitetura de observabilidade cloud a definir |
+
+## Persistência e composição
+
+Migrations de cada serviço ficam em src/main/resources/db/changelog/changes/*.sql, listadas por changelog raiz. Changesets aplicados são imutáveis. Hibernate valida o schema; a aplicação não cria tabelas via ddl-auto=update.
+
+Domain/gateways/use cases permanecem no core. Entity, mapper, adapter e repository pertencem à infraestrutura. Spring Data fornece os repositórios; BeanConfig compõe os adapters e demais beans próprios. Não há acesso cruzado aos bancos dos serviços.
+
+## Build e testes
+
+Executar `make verify` no repositório correspondente. Nos serviços Java, compila, testa, empacota e verifica cobertura; na infraestrutura, verifica formatação e configuração Terraform sem inicializar o backend remoto. `make install` dos serviços também instala o artefato no cache Maven local.
+
+CI dos serviços executa unit-tests e, após sucesso, container-build. Dockerfile usa package -DskipTests; a imagem final contém JRE e aplicação. Versões de imagens e ferramentas são fixadas, e as actions de infraestrutura são fixadas por SHA.
+
+Integração local de banco, migrations e identidade/vídeos foi exercitada, mas não constitui suíte E2E automatizada na CI. Mensageria, FFmpeg e fluxo completo com S3 ainda precisam de validação. Mocks não comprovam esses contratos reais.
+
+## Referências
+
+- [Spring Boot](https://docs.spring.io/spring-boot/system-requirements.html).
+- [Dependências gerenciadas](https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html).
+- [Springdoc](https://springdoc.org/).
+- [Backend S3 Terraform](https://developer.hashicorp.com/terraform/language/backend/s3).
