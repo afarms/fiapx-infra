@@ -1,0 +1,65 @@
+name: AWS OIDC check
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check-identity:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      id-token: write
+    env:
+      EXPECTED_ACCOUNT: '388799375729'
+      EXPECTED_ROLE: fiapx-infra-github-actions
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_PAGER: ''
+    steps:
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$AWS_ROLE_ARN" != "arn:aws:iam::${EXPECTED_ACCOUNT}:role/${EXPECTED_ROLE}" ]]; then
+            echo '::error::Configure AWS_ROLE_ARN with the expected pipeline role ARN.'
+            exit 1
+          fi
+          if [[ "$AWS_REGION" != 'us-east-1' ]]; then
+            echo '::error::Configure AWS_REGION as us-east-1.'
+            exit 1
+          fi
+
+      - name: Authenticate to AWS using OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: '388799375729'
+          role-session-name: fiapx-oidc-${{ github.run_id }}
+          role-duration-seconds: 900
+          unset-current-credentials: true
+          retry-max-attempts: 2
+
+      - name: Verify assumed identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          identity="$(aws sts get-caller-identity --output json)"
+          account="$(jq -r '.Account' <<< "$identity")"
+          arn="$(jq -r '.Arn' <<< "$identity")"
+          expected="arn:aws:sts::${EXPECTED_ACCOUNT}:assumed-role/${EXPECTED_ROLE}/fiapx-oidc-${GITHUB_RUN_ID}"
+          if [[ "$account" != "$EXPECTED_ACCOUNT" || "$arn" != "$expected" ]]; then
+            echo '::error::The assumed identity does not match the expected account and role.'
+            exit 1
+          fi
+          printf 'OIDC authentication verified: %s\n' "$arn"
+          {
+            echo '### AWS OIDC authentication verified'
+            printf '\nAccount: `%s`\n' "$account"
+            printf '\nRole session: `%s`\n' "$arn"
+            echo ''
+            echo 'This check does not validate S3 permissions or modify Terraform state.'
+          } >> "$GITHUB_STEP_SUMMARY"
