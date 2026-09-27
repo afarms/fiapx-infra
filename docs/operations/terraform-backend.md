@@ -42,3 +42,5 @@ Antes de armazenar estado de recursos reais, conferir no console S3:
 O workflow não consulta nem altera essas proteções: a role atual não tem as permissões de leitura dessas configurações. Sucesso no backend não certifica a segurança global do bucket. Não conceder acesso administrativo para resolver um erro de backend; identificar a ação e o recurso negados.
 
 Referência: [backend S3 do Terraform](https://developer.hashicorp.com/terraform/language/backend/s3).
+
+A conta permitida é derivada da Repository Variable AWS_ROLE_ARN. O workflow exporta EXPECTED_ACCOUNT e make backend-check a fornece ao init via configuração parcial do backend. Para uso local desse alvo, exportar EXPECTED_ACCOUNT com os 12 dígitos da conta correspondente à role antes de executar. O ID não fica fixo no código; a restrição de conta continua ativa. Nenhuma variável nova no GitHub é necessária.

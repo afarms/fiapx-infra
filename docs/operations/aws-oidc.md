@@ -8,7 +8,7 @@ Em Settings → Secrets and variables → Actions → Variables, cadastrar:
 
 | Variável | Valor |
 | --- | --- |
-| AWS_ROLE_ARN | arn:aws:iam::388799375729:role/fiapx-infra-github-actions |
+| AWS_ROLE_ARN | arn:aws:iam::<ID_DA_CONTA>:role/fiapx-infra-github-actions |
 | AWS_REGION | us-east-1 |
 
 Na AWS, o provedor OIDC deve ser `https://token.actions.githubusercontent.com`, com audience `sts.amazonaws.com`. A confiança da role deve permitir `sts:AssumeRoleWithWebIdentity` e restringir o subject a:
@@ -25,7 +25,7 @@ O formato inclui os IDs imutáveis de proprietário e repositório, conforme o p
 2. No GitHub, abrir **Actions → AWS OIDC check**.
 3. Clicar em **Run workflow**, selecionar **main** e confirmar.
 4. Abrir a execução e conferir o job **check-identity**.
-5. Sucesso exige status verde e resumo **AWS OIDC authentication verified**, com conta `388799375729` e sessão da role `fiapx-infra-github-actions`.
+5. Sucesso exige status verde e resumo **AWS OIDC authentication verified**, com a conta extraída de `AWS_ROLE_ARN` e sessão da role `fiapx-infra-github-actions`.
 
 O workflow não dispara no PR nem automaticamente no merge. Outra branch é ignorada pelo job. A autenticação não pode ser comprovada antes da execução real na main.
 

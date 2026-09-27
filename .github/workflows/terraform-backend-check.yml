@@ -33,8 +33,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$AWS_ROLE_ARN" != 'arn:aws:iam::388799375729:role/fiapx-infra-github-actions' || "$AWS_REGION" != 'us-east-1' ]]; then
+          if [[ ! "$AWS_ROLE_ARN" =~ ^arn:aws:iam::([0-9]{12}):role/fiapx-infra-github-actions$ ]]; then
             echo '::error::Configure AWS_ROLE_ARN and AWS_REGION with the expected role and region.'
+            exit 1
+          fi
+          printf 'EXPECTED_ACCOUNT=%s\n' "${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          if [[ "$AWS_REGION" != 'us-east-1' ]]; then
+            echo '::error::Configure AWS_REGION as us-east-1.'
             exit 1
           fi
 
@@ -52,7 +57,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-          allowed-account-ids: '388799375729'
+          allowed-account-ids: ${{ env.EXPECTED_ACCOUNT }}
           role-session-name: fiapx-backend-${{ github.run_id }}
           role-duration-seconds: 900
           unset-current-credentials: true

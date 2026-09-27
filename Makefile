@@ -11,6 +11,6 @@ verify:
 # Requires AWS credentials. May initialize an empty state and uses the S3 lock.
 # Intended for the empty configuration before application resources are added.
 backend-check:
-	$(TERRAFORM) -chdir=terraform init -reconfigure -input=false
+	bash scripts/init-backend.sh
 	$(TERRAFORM) -chdir=terraform validate
 	$(TERRAFORM) -chdir=terraform plan -input=false -lock=true -lock-timeout=60s -detailed-exitcode -no-color
