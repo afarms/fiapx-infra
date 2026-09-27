@@ -1,6 +1,6 @@
 # Validação do backend Terraform no S3
 
-Configuração inicial sem recursos de aplicação. O bucket existente permanece fora do gerenciamento desta raiz Terraform; não será criado, importado ou destruído por ela.
+O bootstrap foi validado na AWS no [run 36357194092](https://github.com/afarms/fiapx-infra/actions/runs/36357194092). O diagnóstico de estado vazio foi substituído pelo [fluxo de entrega](media-storage.md). As instruções de execução abaixo registram o procedimento de bootstrap anterior e não devem ser usadas para a configuração atual com recursos de mídia. O bucket existente permanece fora do gerenciamento desta raiz Terraform; não será criado, importado ou destruído por ela.
 
 | Item | Valor |
 | --- | --- |
@@ -17,7 +17,7 @@ Configuração inicial sem recursos de aplicação. O bucket existente permanece
 
 Instalar Terraform 1.14.7 e GNU Make. Na raiz do repositório, executar `make verify`: fmt, init sem backend e validate. Não requer credenciais AWS, não valida acesso remoto e não aplica recursos.
 
-## Execução real após o merge
+## Procedimento histórico do bootstrap (aposentado)
 
 PRs para main e pushes na main executam **Terraform CI**, com check **terraform-validate** (make verify, sem credenciais AWS ou inicialização do backend remoto). Configurar exatamente `terraform-validate` como status check obrigatório no ruleset de main. Os workflows manuais OIDC/backend não devem ser obrigatórios para merge, pois só executam na main após integração.
 

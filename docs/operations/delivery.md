@@ -4,7 +4,7 @@
 
 Região: `us-east-1`. O bucket existente `fiap-fase-05` foi criado previamente pelo responsável. A configuração Terraform usa `fiapx-infra/tfstate/terraform.tfstate`, criptografia solicitada por `encrypt=true` e lock nativo por `use_lockfile=true`. O bucket permanece fora do ciclo de destruição da aplicação. Estado e planos não pertencem ao Git.
 
-O teste OIDC foi executado com sucesso. O workflow de backend está disponível, mas sua execução real ainda não foi confirmada. A role possui permissões limitadas ao backend; políticas para provisionar recursos serão definidas conforme cada incremento. Não foi comprovada a configuração de versionamento, criptografia padrão ou bloqueio público do bucket; conferir no console antes de armazenar estado de recursos reais.
+OIDC e backend/lock foram verificados na AWS (backend run 36357194092). A configuração de mídia e o workflow manual plan/apply estão preparados, com provisionamento remoto pendente. A role atual precisa da política adicional do [guia de mídia](media-storage.md). O novo pipeline verifica versionamento, criptografia padrão e bloqueio público do bucket de estado em modo somente leitura antes de plan/apply; essa verificação ainda não foi executada na AWS.
 
 Guias: [autenticação OIDC](aws-oidc.md) e [validação do backend](terraform-backend.md).
 

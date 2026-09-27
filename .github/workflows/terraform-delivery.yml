@@ -1,0 +1,92 @@
+name: Terraform delivery
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Operation (review the private plan before apply)
+        type: choice
+        options: [plan, apply]
+        default: plan
+      plan_id:
+        description: For apply, plan ID from the successful plan run
+        type: string
+      plan_commit:
+        description: For apply, full commit from the reviewed plan
+        type: string
+      plan_sha256:
+        description: For apply, SHA-256 from the reviewed plan
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: fiapx-infra-terraform-state
+  cancel-in-progress: false
+
+jobs:
+  deliver:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_VAR_media_bucket_name: ${{ vars.MEDIA_BUCKET_NAME }}
+      TF_IN_AUTOMATION: 'true'
+      TF_WORKSPACE: default
+      AWS_PAGER: ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$AWS_ROLE_ARN" =~ ^arn:aws:iam::([0-9]{12}):role/fiapx-infra-github-actions$ ]]; then
+            echo '::error::Configure the AWS_ROLE_ARN repository secret.'
+            exit 1
+          fi
+          printf '::add-mask::%s\n' "${BASH_REMATCH[1]}"
+          printf 'EXPECTED_ACCOUNT=%s\n' "${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          [[ "$AWS_REGION" == us-east-1 ]]
+          [[ "$TF_VAR_media_bucket_name" =~ ^fiapx-media-[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$ ]]
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
+        with:
+          terraform_version: 1.14.7
+          terraform_wrapper: false
+
+      - name: Validate and test
+        run: make verify
+
+      - name: Authenticate using OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ env.EXPECTED_ACCOUNT }}
+          role-session-name: fiapx-delivery-${{ github.run_id }}
+          role-duration-seconds: 900
+          mask-aws-account-id: true
+          unset-current-credentials: true
+          retry-max-attempts: 2
+
+      - name: Create private plan
+        if: inputs.operation == 'plan'
+        run: make infra-plan
+
+      - name: Apply reviewed plan
+        if: inputs.operation == 'apply'
+        env:
+          PLAN_ID: ${{ inputs.plan_id }}
+          PLAN_COMMIT: ${{ inputs.plan_commit }}
+          PLAN_SHA256: ${{ inputs.plan_sha256 }}
+        run: make infra-apply
