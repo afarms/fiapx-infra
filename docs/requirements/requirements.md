@@ -41,7 +41,7 @@ Java, Spring Boot, Mockito, Swagger e Liquibase são escolhas de implementação
 
 ## Evidência de implementação
 
-RF-04 está implementado para identidade e consultas de vídeos; RF-05 está parcialmente entregue com metadados e estado inicial UPLOADING, sem ciclo completo de processamento. RT-01 e EN-02 possuem migrations Liquibase e persistência local verificadas com PostgreSQL e reinício. RT-04 possui testes unitários/cobertura; cenários distribuídos ainda pendentes. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos e infraestrutura. RT-05 tem CI executada, mas CD/deploy ainda pendentes. Relatórios são artefatos da CI. Infraestrutura possui backend Terraform configurado e autenticação OIDC validada, sem comprovação ainda do teste S3/lock remoto.
+RF-04 está implementado para identidade e consultas de vídeos; RF-05 está parcialmente entregue com metadados e estado inicial UPLOADING, sem ciclo completo de processamento. RT-01 e EN-02 possuem migrations Liquibase e persistência local verificadas com PostgreSQL e reinício. RT-04 possui testes unitários/cobertura; cenários distribuídos ainda pendentes. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos e infraestrutura. RT-05 tem CI executada, mas CD/deploy ainda pendentes. Relatórios são artefatos da CI. OIDC e backend S3/lock foram verificados remotamente. Configuração Terraform de mídia preparada, com provisionamento ainda pendente.
 
 Cada requisito deve ser validado com cenários verificáveis. Atualizar esta tabela com links a testes e evidências reais conforme entrega.
 Não marcar um requisito como atendido só por existir um arquivo de documentação.
@@ -49,7 +49,7 @@ Não marcar um requisito como atendido só por existir um arquivo de documentaç
 Mermaid é uma escolha de formato para os diagramas; o enunciado exige documentação da arquitetura, sem determinar essa ferramenta. PDF conferido por extração em 2026-09-19.
 
 
-## Regras de produto (implementadas parcialmente) (implementadas parcialmente)
+## Regras de produto (implementadas parcialmente)
 
 - Cadastro público cria USER. USER consulta e altera somente seus dados; ADMIN gerencia usuários, promove papéis, inativa e exclui. Proteger o último ADMIN ativo. Administrador inicial criado por bootstrap idempotente com configuração secreta.
 - Autenticação própria com JWT de 30 minutos, em memória, sem renovação automática. Reload exige login. APIs validam token e situação/permissões atuais da conta; verificação indisponível não autoriza acesso. Inativação e exclusão bloqueiam novas chamadas mesmo com token ainda válido.
