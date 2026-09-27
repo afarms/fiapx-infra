@@ -4,11 +4,11 @@ O workflow `AWS OIDC check` valida a autenticação temporária na AWS usando OI
 
 ## Pré-requisitos
 
-Em Settings → Secrets and variables → Actions → Variables, cadastrar:
+Em Settings → Secrets and variables → Actions, cadastrar `AWS_ROLE_ARN` em **Secrets → New repository secret**, e `AWS_REGION` em **Variables**. O ARN não é uma credencial, mas seu armazenamento como Secret habilita mascaramento desde o início dos logs. Se já existe como Variable, copiar o mesmo valor para o Secret; o workflow não usa mais a Variable de ARN.
 
 | Variável | Valor |
 | --- | --- |
-| AWS_ROLE_ARN | arn:aws:iam::388799375729:role/fiapx-infra-github-actions |
+| AWS_ROLE_ARN | arn:aws:iam::<ID_DA_CONTA>:role/fiapx-infra-github-actions |
 | AWS_REGION | us-east-1 |
 
 Na AWS, o provedor OIDC deve ser `https://token.actions.githubusercontent.com`, com audience `sts.amazonaws.com`. A confiança da role deve permitir `sts:AssumeRoleWithWebIdentity` e restringir o subject a:
@@ -25,13 +25,13 @@ O formato inclui os IDs imutáveis de proprietário e repositório, conforme o p
 2. No GitHub, abrir **Actions → AWS OIDC check**.
 3. Clicar em **Run workflow**, selecionar **main** e confirmar.
 4. Abrir a execução e conferir o job **check-identity**.
-5. Sucesso exige status verde e resumo **AWS OIDC authentication verified**, com conta `388799375729` e sessão da role `fiapx-infra-github-actions`.
+5. Sucesso exige status verde e resumo **AWS OIDC authentication verified**. Conta e sessão são conferidas internamente, sem serem incluídas no resumo ou na mensagem de sucesso. O ID extraído é mascarado antes de ser disponibilizado às etapas seguintes; a action AWS também usa `mask-aws-account-id: true`. Logs antigos não são alterados.
 
 O workflow não dispara no PR nem automaticamente no merge. Outra branch é ignorada pelo job. A autenticação não pode ser comprovada antes da execução real na main.
 
 ## Diagnóstico
 
-- Erro em Validate configuration: conferir as duas Repository Variables.
+- Erro em Validate configuration: conferir o Repository Secret AWS_ROLE_ARN e a Repository Variable AWS_REGION.
 - Erro em AssumeRoleWithWebIdentity: conferir provedor, audience, subject e política de confiança; verificar execução na main, sem Environment.
 - Job skipped: a branch escolhida não é main.
 - Sucesso no STS não comprova acesso ao S3: a política do backend, criptografia e lock serão verificados separadamente.
