@@ -15,7 +15,9 @@
       ],
       "Resource": [
         "arn:aws:sqs:us-east-1:ACCOUNT_ID:fiapx-processing-work",
-        "arn:aws:sqs:us-east-1:ACCOUNT_ID:fiapx-processing-work-dlq"
+        "arn:aws:sqs:us-east-1:ACCOUNT_ID:fiapx-processing-work-dlq",
+        "arn:aws:sqs:us-east-1:ACCOUNT_ID:fiapx-videos-events",
+        "arn:aws:sqs:us-east-1:ACCOUNT_ID:fiapx-videos-events-dlq"
       ]
     },
     {
@@ -34,7 +36,10 @@
         "iam:GetRolePolicy",
         "iam:PutRolePolicy"
       ],
-      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-video-local"
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-video-local",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-processing-local"
+      ]
     }
   ]
 }
