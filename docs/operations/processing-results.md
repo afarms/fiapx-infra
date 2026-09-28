@@ -48,4 +48,4 @@ Não compartilhar sessões do produtor/worker nem usar role de provisionamento n
 
 A policy de resultados da role fiapx-video-local inclui DeleteObject apenas em results/* no bucket de mídia. O serviço de vídeos usa essa permissão para excluir ZIPs expirados após adquirir claim PostgreSQL e verificar ausência de downloads ativos. Não acrescenta PutObject, ListBucket ou DeleteObjectVersion.
 
-Mudança validada localmente com mocks; aplicação remota não realizada nesta implementação. Habilitar RESULT_CLEANUP_ENABLED somente após provisionar a permissão. A rotina preserva metadados e repete falhas de forma idempotente. Originais e órfãos do worker mantêm suas responsabilidades existentes.
+A policy é validada localmente com mocks e provisionada pelo workflow Terraform. Confirmar a execução correspondente e as permissões da identidade usada pela aplicação antes de habilitar RESULT_CLEANUP_ENABLED; sucesso no apply não substitui o teste do workload na cloud. A rotina preserva metadados e repete falhas de forma idempotente. Originais e órfãos do worker mantêm suas responsabilidades existentes.
