@@ -62,6 +62,40 @@ O bucket privado de mídia contém originais e ZIPs em prefixos distintos, separ
 
 A disponibilidade funcional permanece 24 horas após conclusão do processamento. Não há lifecycle apagando arquivos pela idade do upload. Upload/download, autorização por dono, limpeza de órfãos e exclusão distribuída serão implementados nos serviços.
 
+## Filas de processamento e acesso local
+
+O Terraform define `fiapx-processing-work` e `fiapx-processing-work-dlq` como filas Standard em `us-east-1`, com SSE-SQS e recusa de HTTP. A principal retém mensagens por 4 dias, usa visibilidade inicial de 120 segundos e long polling de 20 segundos; após 5 recebimentos sem exclusão, as mensagens podem seguir para a DLQ, que retém por 14 dias. Somente a principal pode usar essa DLQ. O worker precisará renovar a visibilidade durante processamentos longos e tratar duplicatas; ele ainda não está implementado.
+
+Antes do primeiro apply deste incremento, usando `rafael-admin` no console:
+
+1. Abra **IAM → Roles → fiapx-infra-github-actions → Permissions → Add permissions → Create inline policy**.
+2. Na aba JSON, cole [processing-pipeline-policy.json](processing-pipeline-policy.json). Substitua as três ocorrências de `ACCOUNT_ID` pelo ID da sua conta, consultável no menu superior do console. Não salve a cópia preenchida no Git.
+3. Nomeie a política `fiapx-processing-provisioning` e salve. Preserve as políticas existentes de estado e mídia.
+4. No PR, execute **Re-run failed jobs** se o run já tiver falhado por falta dessas permissões. O workflow continua único e automático.
+
+A política permite provisionar somente essas duas filas e a role `fiapx-video-local`. Não concede envio/consumo de mensagens ao pipeline, nem `iam:PassRole` ou gestão de usuários. A permissão de editar a role exige manter o controle do repositório e revisar suas políticas. Exclusão das filas/role não está habilitada; `prevent_destroy` também bloqueia substituições no fluxo normal.
+
+A role local confia exclusivamente no usuário IAM `rafael-admin` da mesma conta, com caminho `/`. Sua política permite `GetObject`, `PutObject` e `DeleteObject` apenas em `originals/*`, `ListBucket` restrito a esse prefixo e `SendMessage` somente na fila principal. Não autoriza acesso ao estado Terraform, ZIPs de resultado, DLQ ou consumo de mensagens. O ARN da conta é obtido dinamicamente; não há chaves permanentes criadas pelo Terraform.
+
+Após o apply verde, consulte o ARN em **IAM → Roles → fiapx-video-local** e a URL em **SQS → fiapx-processing-work → Details**. Os outputs Terraform correspondentes são sensíveis para não imprimir a conta por padrão. Configure em `%USERPROFILE%\.aws\config` (não no repositório), preservando os perfis existentes:
+
+```ini
+[profile fiapx-video-local]
+role_arn = arn:aws:iam::ACCOUNT_ID:role/fiapx-video-local
+source_profile = rafael-admin
+region = us-east-1
+```
+
+O perfil fonte precisa estar autenticado como o usuário autorizado e poder executar `sts:AssumeRole`. Se a configuração do usuário exigir MFA, configure `mfa_serial` com seu dispositivo no perfil. A aplicação usará esse perfil com credenciais temporárias; a integração do SDK será preparada junto ao upload. Pod Identity para EKS permanece para a implantação das aplicações.
+
+Para conferir a identidade local, sem criar objetos nem enviar mensagens:
+
+```bash
+aws sts get-caller-identity --profile fiapx-video-local
+```
+
+A saída deve conter `assumed-role/fiapx-video-local/`. Ela contém o ID da conta: consulte localmente, sem publicar a saída. Não use a role do pipeline ou o perfil administrativo como credencial de execução da aplicação. O teste confirma a assunção da role; a integração real S3/SQS será validada com o fluxo de upload.
+
 ## Uso local e diagnóstico
 
 `make verify` não usa AWS; baixa o provider fixado e executa testes mock. `make fmt` formata arquivos e `make lock` gera checksums Windows/Linux. `make init`, `make plan`, `make apply` e `make check-drift` são comandos remotos usados pelo workflow; apply altera recursos.
@@ -73,7 +107,7 @@ A disponibilidade funcional permanece 24 horas após conclusão do processamento
 - Plano obsoleto ou apply parcial: corrigir a causa e executar novamente, gerando novo plano.
 - Mudanças na verificação final: investigar drift; o check permanece vermelho.
 
-OIDC e backend já tiveram execução real validada. O novo fluxo de PR e o provisionamento de mídia só devem ser considerados verificados após a execução completa. EKS, RDS, SQS, publicação ECR e deploy das aplicações continuam pendentes. Os serviços mantêm seus próprios workflows de testes e build.
+OIDC, backend, bucket de mídia e fluxo completo de plan/apply no PR já tiveram execução real validada. As filas e a role local estão definidas e testadas com mocks; o provisionamento deste incremento depende da política adicional e de um run completo sem drift. EKS, RDS, demais filas, publicação ECR e deploy das aplicações continuam pendentes. Os serviços mantêm seus próprios workflows de testes e build.
 
 ## Referências oficiais
 
@@ -82,3 +116,6 @@ OIDC e backend já tiveram execução real validada. O novo fluxo de PR e o prov
 - [Automação GitHub Actions](https://developer.hashicorp.com/terraform/tutorials/automation/github-actions).
 - [Backend S3 e recomendação de versionamento](https://developer.hashicorp.com/terraform/language/backend/s3).
 - [Subject OIDC e IDs imutáveis](https://docs.github.com/en/actions/reference/security/oidc).
+- [Permissões de API SQS](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-api-permissions-reference.html).
+- [Filas de mensagens mortas](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html).
+- [Perfis com role na AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html).
