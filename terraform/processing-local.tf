@@ -76,8 +76,3 @@ resource "aws_iam_role_policy" "video_results_local" {
     ]
   })
 }
-
-output "processing_local_role_arn" {
-  value     = aws_iam_role.processing_local.arn
-  sensitive = true
-}

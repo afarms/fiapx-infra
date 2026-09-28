@@ -27,7 +27,7 @@ Vídeos: sete formatos da base, até 100 MB decimais e 300 segundos; referência
 | Observabilidade | Logs estruturados e métricas CloudWatch; alertas de DLQ, idade de fila, falhas e reinícios |
 | Administração | EC2 gerenciada por SSM com acesso privado ao RDS; DBeaver por túnel |
 
-Região da aplicação: Norte da Virgínia (us-east-1). Tamanhos de instância, limites de CPU/memória e retenção de logs serão fixados no dimensionamento. Não estimar custo por volume de requests: EKS, RDS, NAT e ALB têm custos de infraestrutura. Alternativas de rede devem ser comparadas antes de provisionar.
+Região da aplicação: Norte da Virgínia (us-east-1). Tamanhos de instância, limites de CPU/memória e retenção de logs serão fixados no dimensionamento. Base mínima adotada: duas AZs e NAT única. Estimativa financeira dispensada pelo responsável para esta demonstração temporária.
 
 ## Secret único
 
@@ -51,8 +51,8 @@ Inativação impede novo acesso e submissões; efeito sobre jobs já em execuç�
 
 ## Pontos para fechamento
 
-Ambiente de demonstração temporário: algumas semanas, no máximo um mês ligado, seguido de desativação. Incluir no plano de entrega o encerramento dos recursos e a retenção dos dados. Orçamento ainda não definido; não presumir que apenas parar aplicações encerra todos os recursos cobrados.
+Ambiente de demonstração temporário: algumas semanas, no máximo um mês ligado, seguido de desativação. Incluir encerramento dos recursos e retenção dos dados. Estimativa/medição financeira dispensada explicitamente pelo responsável; não constitui bloqueio para rede/ECR. Ver [rede e registros](../operations/cloud-network-registry.md).
 
-Backend existente fiap-fase-05 em us-east-1 já validado. Próximo incremento: rede e ECR dos três serviços, seguido de EKS/RDS/configuração e deploy. Definir orçamento/período ativo e dimensionamento antes do provisionamento; domínio DNS/certificado da origem é necessário na etapa de entrada HTTPS. Para os contratos operacionais: fechar política de jobs já iniciados quando apenas inativar, backups e retenção de metadados. Notificação fica para o final, com contrato, destinatário, duplicatas e configuração SES ainda por detalhar.
+Backend existente fiap-fase-05 em us-east-1 já validado. Rede/ECR definidos e testados localmente; permissões do pipeline e provisionamento pendentes, seguidos de EKS/RDS/configuração e deploy. Período ativo definido em até um mês, sem etapa de estimativa financeira. Domínio DNS/certificado da origem é necessário na etapa de entrada HTTPS. Para os contratos operacionais: fechar política de jobs já iniciados quando apenas inativar, backups e retenção de metadados. Notificação fica para o final, com contrato, destinatário, duplicatas e configuração SES ainda por detalhar.
 
 Fontes técnicas: [SQS Standard](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues.html), [EKS node groups](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html), [Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html). São referências de capacidade; dimensionamento ainda não foi testado.

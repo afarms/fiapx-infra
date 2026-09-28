@@ -45,8 +45,3 @@ resource "aws_iam_role_policy" "video_local" {
     ]
   })
 }
-
-output "video_local_role_arn" {
-  value     = aws_iam_role.video_local.arn
-  sensitive = true
-}

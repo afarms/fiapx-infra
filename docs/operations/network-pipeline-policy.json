@@ -1,0 +1,277 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeNatGateways",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeAddressesAttribute",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeTags",
+        "ec2:DescribeAvailabilityZones"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVpc",
+        "ec2:CreateSubnet",
+        "ec2:CreateRouteTable",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateNatGateway",
+        "ec2:AllocateAddress"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:natgateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "UseOwnedVpcForCreation",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateSubnet",
+        "ec2:CreateRouteTable",
+        "ec2:CreateNatGateway"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "UseOwnedNatDependencies",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateNatGateway"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "TagDuringCreation",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:natgateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "ec2:CreateAction": [
+            "CreateVpc",
+            "CreateSubnet",
+            "CreateRouteTable",
+            "CreateInternetGateway",
+            "CreateNatGateway",
+            "AllocateAddress"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureOwnedVpc",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:ModifyVpcAttribute"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureOwnedSubnet",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:ModifySubnetAttribute"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "AttachOwnedGateway",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AttachInternetGateway"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "RouteOwnedNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateRoute",
+        "ec2:ReplaceRoute",
+        "ec2:AssociateRouteTable",
+        "ec2:ReplaceRouteTableAssociation"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "MaintainOwnedTags",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:vpc/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:route-table/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:internet-gateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:natgateway/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:elastic-ip/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        },
+        "ForAllValues:StringNotEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "ManagedBy"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "BootstrapDefaultGroupTags",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Name": "fiapx-default-no-access"
+        },
+        "Null": {
+          "ec2:ResourceTag/Project": "true",
+          "ec2:ResourceTag/ManagedBy": "true",
+          "ec2:ResourceTag/Name": "true"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "ManagedBy",
+            "Name"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "RevokeOwnedDefaultGroupRules",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupEgress"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-default-no-access"
+        }
+      }
+    }
+  ]
+}

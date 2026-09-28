@@ -10,6 +10,7 @@ Repositório de Terraform e documentação da integração entre os serviços FI
 - Infraestrutura: OIDC, backend S3/lock, bucket privado de mídia e workflow único de validação, plan e apply automático no PR verificados na AWS.
 - Filas de processamento/resultados, DLQs, roles locais e permissões de resultados/limpeza provisionadas pelo pipeline. Isso não comprova execução integrada das aplicações na AWS. Ver [guia de resultados](docs/operations/processing-results.md).
 - EKS, RDS, demais filas e frontend fazem parte da arquitetura planejada e ainda não foram provisionados por este projeto.
+- Rede em duas AZs, NAT e três ECR privados provisionados com apply e drift verificados; ver [rede/ECR](docs/operations/cloud-network-registry.md).
 - Prioridade: rede/ECR → EKS/RDS/configuração → deploy e fluxo principal → validação cloud. Notificação mínima de erro por e-mail fica ao final, via SQS/Lambda/SES, conforme [ADR-0002](docs/architecture/adr/0002-email-notifications-cloud-first.md).
 
 O bucket de estado existente `fiap-fase-05`, no prefixo `fiapx-infra/tfstate/`, foi criado previamente e não é gerenciado nem destruído por esta configuração. O bucket de mídia é separado do estado. Ambos operam sem novas versões; o pipeline não exige versionamento. O plano permanece somente no runner durante a execução.
@@ -31,6 +32,9 @@ Configuração GitHub: `AWS_ROLE_ARN` em **Repository Secrets** para mascarament
 Configure também `MEDIA_BUCKET_NAME`, a política IAM adicional e a confiança OIDC de PR conforme o [guia único de operação](docs/operations/delivery.md). Não há escolha manual de plan/apply nem execução duplicada após o merge.
 
 ## Documentação
+
+- [Estrutura Terraform](terraform/README.md).
+- [Rede/ECR e permissões de provisionamento](docs/operations/cloud-network-registry.md).
 
 - [Arquitetura integrada](docs/architecture/consolidated.md).
 - [Diagramas Mermaid](docs/architecture/diagrams.md).

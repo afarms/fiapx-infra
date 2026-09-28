@@ -1,0 +1,46 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateServiceRegistries",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository"
+      ],
+      "Resource": [
+        "arn:aws:ecr:us-east-1:ACCOUNT_ID:repository/fiapx-identity-service",
+        "arn:aws:ecr:us-east-1:ACCOUNT_ID:repository/fiapx-video-service",
+        "arn:aws:ecr:us-east-1:ACCOUNT_ID:repository/fiapx-processing-service"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "ManageServiceRegistryConfiguration",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:DescribeRepositories",
+        "ecr:ListTagsForResource",
+        "ecr:TagResource",
+        "ecr:UntagResource",
+        "ecr:PutImageScanningConfiguration",
+        "ecr:PutImageTagMutability"
+      ],
+      "Resource": [
+        "arn:aws:ecr:us-east-1:ACCOUNT_ID:repository/fiapx-identity-service",
+        "arn:aws:ecr:us-east-1:ACCOUNT_ID:repository/fiapx-video-service",
+        "arn:aws:ecr:us-east-1:ACCOUNT_ID:repository/fiapx-processing-service"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    }
+  ]
+}

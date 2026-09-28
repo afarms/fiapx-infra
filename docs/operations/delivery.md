@@ -98,6 +98,8 @@ A saída deve conter `assumed-role/fiapx-video-local/`. Ela contém o ID da cont
 
 ## Uso local e diagnóstico
 
+Para o incremento de rede/ECR, instalar as políticas adicionais de [rede e registros](cloud-network-registry.md#permissões-do-pipeline) antes de publicar o PR. São políticas customer-managed separadas, sem substituir as atuais. A [estrutura Terraform](../../terraform/README.md) separa versões, provider, entradas e saídas dos recursos sem mudar o backend.
+
 `make verify` não usa AWS; baixa o provider fixado e executa testes mock. `make fmt` formata arquivos e `make lock` gera checksums Windows/Linux. `make init`, `make plan`, `make apply` e `make check-drift` são comandos remotos usados pelo workflow; apply altera recursos.
 
 - Falha em validação: corrigir o arquivo indicado antes de autenticar.
