@@ -66,6 +66,12 @@ resource "aws_iam_role_policy" "video_results_local" {
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
         Resource = "arn:aws:s3:::${var.media_bucket_name}/results/*"
+      },
+      {
+        Sid      = "DeleteExpiredResults"
+        Effect   = "Allow"
+        Action   = ["s3:DeleteObject"]
+        Resource = "arn:aws:s3:::${var.media_bucket_name}/results/*"
       }
     ]
   })
