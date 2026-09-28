@@ -1,7 +1,7 @@
 # ADR-0001 — Repositórios e limites de serviços
 
 Data: 2026-09-19.
-Estado: ACEITO para repositórios independentes e quatro limites de serviços, conforme respostas de 2026-09-20. Contratos e implantação ainda em definição.
+Estado: PARCIALMENTE SUBSTITUÍDO pela [ADR-0002](0002-email-notifications-cloud-first.md) em 2026-09-28. Repositórios independentes e os três serviços principais no EKS permanecem aceitos. O texto abaixo preserva a decisão histórica de quatro serviços; notificações agora serão e-mail via Lambda/SES, sem banco de avisos.
 
 O desafio pede microsserviços, mensageria, concorrência e persistência. Monorepo e monólito modular foram descartados por escolha do responsável. O enunciado não exige organização específica de repositórios.
 

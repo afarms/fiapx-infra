@@ -2,7 +2,7 @@
 
 Fonte: [enunciado original](../reference/enunciado.pdf), transcrição em [enunciado.md](../reference/enunciado.md).
 Seção indicada na tabela; IDs abaixo são nossos, não IDs fornecidos pela FIAP.
-Estado: entrega parcial. Cadastro/login, gestão de contas e consultas autenticadas de vídeos implementados; persistência e integração HTTP verificadas localmente, CI executada. Upload, processamento, download, notificações, exclusão distribuída e deploy permanecem pendentes.
+Estado: entrega parcial. Identidade, upload, processamento, consultas, download e limpeza assíncrona implementados e integrados. Validação integrada na cloud, notificações, exclusão distribuída e deploy das aplicações permanecem pendentes.
 
 | ID | Fonte | Necessidade | Área responsável | Evidência esperada |
 | --- | --- | --- | --- | --- |
@@ -11,7 +11,7 @@ Estado: entrega parcial. Cadastro/login, gestão de contas e consultas autentica
 | RF-03 | Funcionalidades essenciais | Não perder requisição em picos | Vídeos e processamento | Aceite durável, recuperação e teste de pico/falha |
 | RF-04 | Funcionalidades essenciais | Proteção por usuário e senha | Identidade | Login válido/inválido, acesso anônimo bloqueado |
 | RF-05 | Funcionalidades essenciais | Listar status dos vídeos de um usuário | Vídeos | Listagem por dono, isolamento entre dois usuários |
-| RF-06 | Funcionalidades essenciais | Possibilidade de notificação em erro | Notificações | Falha terminal gera aviso persistido na interface, isolado por usuário |
+| RF-06 | Funcionalidades essenciais | Possibilidade de notificação em erro | Lambda de notificações | Falha terminal gera e-mail para o dono do vídeo; envio, retentativas e DLQ demonstrados |
 | RT-01 | Arquitetura e infraestrutura | Persistir dados | Persistência | Reinício preserva registros e arquivos duráveis |
 | RT-02 | Arquitetura e infraestrutura | Arquitetura escalável | Processamento e infraestrutura | Replicar workers sem colisão de arquivos/jobs |
 | RT-03 | Arquitetura e infraestrutura | Versionamento no GitHub | Entrega | URL real do repositório e histórico |
@@ -27,7 +27,7 @@ Estado: entrega parcial. Cadastro/login, gestão de contas e consultas autentica
 ## Interpretação e limites
 
 RF-06 usa "pode ser notificado": planejar a capacidade de notificação de erro, sem afirmar que e-mail
-é o único canal obrigatório. Decisão de 2026-09-20: aviso pela interface, sem envio de e-mail.
+é o único canal obrigatório. Decisão de 2026-09-28: e-mail por Lambda + SES, acionada por SQS; substitui a escolha anterior de avisos persistidos na interface. Implementar depois do fluxo principal na cloud. O enunciado não exige serviço Java dedicado, histórico de leitura ou aviso de sucesso.
 "Mais de um vídeo" exige concorrência, mas o PDF não fornece volume, tamanho máximo, SLA ou retenção.
 Esses valores serão decisões explícitas. "Não perder" precisa de contrato de aceite e testes de recuperação;
 não significa aceitar carga infinita sem limite.
@@ -41,7 +41,7 @@ Java, Spring Boot, Mockito, Swagger e Liquibase são escolhas de implementação
 
 ## Evidência de implementação
 
-RF-04 está implementado para identidade e consultas de vídeos; RF-05 está parcialmente entregue com metadados e estado inicial UPLOADING, sem ciclo completo de processamento. RT-01 e EN-02 possuem migrations Liquibase e persistência local verificadas com PostgreSQL e reinício. RT-04 possui testes unitários/cobertura; cenários distribuídos ainda pendentes. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos e infraestrutura. RT-05 tem CI executada, mas CD/deploy ainda pendentes. Relatórios são artefatos da CI. OIDC e backend S3/lock foram verificados remotamente. Bucket de mídia provisionado pelo pipeline Terraform; trabalho/DLQ e acesso local do produtor preparados, sem comprovação de processamento ou consumo real ainda.
+RF-01, RF-04 e RF-05 possuem implementação nos serviços; RF-02/RF-03 possuem mecanismos de concorrência e recuperação, ainda sujeitos aos ensaios integrados na cloud. RT-01 e EN-02 possuem migrations Liquibase e persistência verificadas localmente. RT-04 possui testes unitários e de integração local; esses testes não comprovam o ambiente AWS completo. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos, processamento e infraestrutura. RT-05 tem CI executada e provisionamento Terraform, mas deploy das aplicações pendente. Mídia, filas de trabalho/resultados, respectivas DLQs e permissões locais foram provisionadas pelo pipeline. RF-06 não está implementado. Relatórios são artefatos da CI; ver também o [runbook de validação de download](https://github.com/afarms/fiapx-video-service/blob/main/docs/download-validation.md).
 
 Cada requisito deve ser validado com cenários verificáveis. Atualizar esta tabela com links a testes e evidências reais conforme entrega.
 Não marcar um requisito como atendido só por existir um arquivo de documentação.
@@ -56,11 +56,11 @@ Mermaid é uma escolha de formato para os diagramas; o enunciado exige documenta
 - Inativação preserva cadastro; exclusão remove definitivamente conta e dados associados com cleanup assíncrono. A operação só termina após confirmação dos proprietários dos dados. Requisições já autorizadas e cópias baixadas não são revogadas retroativamente.
 - Vídeos: MP4, AVI, MOV, MKV, WMV, FLV e WebM; até 100.000.000 bytes e 300 segundos. Validar mídia real, não apenas extensão. A base usa FFmpeg com fps=1 e produz PNGs em ZIP; essa é a referência de compatibilidade.
 - Arquivos disponíveis por 24 horas após concluir o processamento. Expiração do download não transforma conclusão em falha. Exclusão de conta prevalece sobre a disponibilidade normal.
-- Avisos de erro persistidos pelo serviço de notificações e exibidos somente ao dono, inclusive após novo login. Não há envio de e-mail.
+- Falha definitiva de processamento gera e-mail simples para o dono do vídeo, por SQS → Lambda → SES. Sem API de notificações, avisos de sucesso, preferências ou controle de leitura. Contrato, destinatário, tratamento de duplicatas e configuração do remetente serão detalhados antes da implementação; ver [decisão de simplificação](../architecture/adr/0002-email-notifications-cloud-first.md).
 
 ## Arquitetura alvo de infraestrutura
 
-Quatro serviços em EKS, RDS PostgreSQL privado com bancos/credenciais distintos e acesso DBeaver via SSM. Exatamente um secret AWS Secrets Manager para esta etapa. Terraform em repositório separado das aplicações, com backend em bucket S3 preexistente. Interface HTML/JavaScript em S3 + CloudFront; APIs autenticadas servem upload/download.
+Três serviços em EKS (identidade, vídeos e processamento) e uma Lambda para e-mail. RDS PostgreSQL privado com bancos/credenciais distintos para os três serviços e acesso DBeaver via SSM; sem banco dedicado de avisos. Exatamente um secret AWS Secrets Manager para esta etapa. Terraform em repositório separado das aplicações, com backend em bucket S3 preexistente. Interface HTML/JavaScript em S3 + CloudFront; APIs autenticadas servem upload/download.
 
 ## Evidência da base
 

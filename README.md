@@ -5,10 +5,12 @@ Repositório de Terraform e documentação da integração entre os serviços FI
 ## Estado atual
 
 - Identidade: cadastro, login JWT, perfil, credenciais e administração de usuários implementados. Exclusão distribuída pendente.
-- Vídeos: persistência, consultas autenticadas e upload com aceite durável/outbox implementados. Processamento e download pendentes.
+- Vídeos: consultas autenticadas, upload durável/outbox, resultados, download e limpeza assíncrona implementados e integrados.
+- Processamento: worker/FFmpeg, concorrência e recuperação implementados. Validação integrada na cloud pendente.
 - Infraestrutura: OIDC, backend S3/lock, bucket privado de mídia e workflow único de validação, plan e apply automático no PR verificados na AWS.
-- Fila de processamento Standard, DLQ e role local do produtor provisionadas. Fila de resultados/DLQ, role local do worker e permissões de consumo de resultados preparadas e testadas localmente; implantação pendente. Ver [guia de resultados](docs/operations/processing-results.md).
+- Filas de processamento/resultados, DLQs, roles locais e permissões de resultados/limpeza provisionadas pelo pipeline. Isso não comprova execução integrada das aplicações na AWS. Ver [guia de resultados](docs/operations/processing-results.md).
 - EKS, RDS, demais filas e frontend fazem parte da arquitetura planejada e ainda não foram provisionados por este projeto.
+- Prioridade: rede/ECR → EKS/RDS/configuração → deploy e fluxo principal → validação cloud. Notificação mínima de erro por e-mail fica ao final, via SQS/Lambda/SES, conforme [ADR-0002](docs/architecture/adr/0002-email-notifications-cloud-first.md).
 
 O bucket de estado existente `fiap-fase-05`, no prefixo `fiapx-infra/tfstate/`, foi criado previamente e não é gerenciado nem destruído por esta configuração. O bucket de mídia é separado do estado. Ambos operam sem novas versões; o pipeline não exige versionamento. O plano permanece somente no runner durante a execução.
 
