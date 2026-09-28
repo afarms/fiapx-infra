@@ -6,8 +6,9 @@ Repositório de Terraform e documentação da integração entre os serviços FI
 
 - Identidade: cadastro, login JWT, perfil, credenciais e administração de usuários implementados. Exclusão distribuída pendente.
 - Vídeos: persistência e consultas autenticadas por proprietário implementadas. Upload, processamento e download pendentes.
-- Infraestrutura: OIDC e backend S3/lock verificados na AWS. Bucket privado de mídia definido em Terraform; workflow único de validação, plan e apply automático no PR. Execução completa desse fluxo ainda pendente.
-- EKS, RDS, mensageria, bucket de mídia e frontend fazem parte da arquitetura planejada e ainda não foram provisionados por este projeto.
+- Infraestrutura: OIDC, backend S3/lock, bucket privado de mídia e workflow único de validação, plan e apply automático no PR verificados na AWS.
+- Fila de processamento Standard, DLQ e role local do produtor definidas em Terraform e testadas com mocks; aguardam execução do pipeline com a política adicional do guia de operação.
+- EKS, RDS, demais filas e frontend fazem parte da arquitetura planejada e ainda não foram provisionados por este projeto.
 
 O bucket de estado existente `fiap-fase-05`, no prefixo `fiapx-infra/tfstate/`, foi criado previamente e não é gerenciado nem destruído por esta configuração. O bucket de mídia é separado do estado. Ambos operam sem novas versões; o pipeline não exige versionamento. O plano permanece somente no runner durante a execução.
 

@@ -41,7 +41,7 @@ Java, Spring Boot, Mockito, Swagger e Liquibase são escolhas de implementação
 
 ## Evidência de implementação
 
-RF-04 está implementado para identidade e consultas de vídeos; RF-05 está parcialmente entregue com metadados e estado inicial UPLOADING, sem ciclo completo de processamento. RT-01 e EN-02 possuem migrations Liquibase e persistência local verificadas com PostgreSQL e reinício. RT-04 possui testes unitários/cobertura; cenários distribuídos ainda pendentes. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos e infraestrutura. RT-05 tem CI executada, mas CD/deploy ainda pendentes. Relatórios são artefatos da CI. OIDC e backend S3/lock foram verificados remotamente. Configuração Terraform de mídia preparada, com provisionamento ainda pendente.
+RF-04 está implementado para identidade e consultas de vídeos; RF-05 está parcialmente entregue com metadados e estado inicial UPLOADING, sem ciclo completo de processamento. RT-01 e EN-02 possuem migrations Liquibase e persistência local verificadas com PostgreSQL e reinício. RT-04 possui testes unitários/cobertura; cenários distribuídos ainda pendentes. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos e infraestrutura. RT-05 tem CI executada, mas CD/deploy ainda pendentes. Relatórios são artefatos da CI. OIDC e backend S3/lock foram verificados remotamente. Bucket de mídia provisionado pelo pipeline Terraform; trabalho/DLQ e acesso local do produtor preparados, sem comprovação de processamento ou consumo real ainda.
 
 Cada requisito deve ser validado com cenários verificáveis. Atualizar esta tabela com links a testes e evidências reais conforme entrega.
 Não marcar um requisito como atendido só por existir um arquivo de documentação.

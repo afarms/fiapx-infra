@@ -1,6 +1,6 @@
 # Stack e política de versões
 
-Estado: identidade e consultas de vídeos implementadas com testes, Compose/PostgreSQL e CI. OIDC e backend/lock Terraform verificados na AWS. Mídia definida em Terraform; entrega automática no PR configurada, com execução completa e deploy das aplicações ainda pendentes.
+Estado: identidade e consultas de vídeos implementadas com testes, Compose/PostgreSQL e CI. OIDC e backend/lock Terraform verificados na AWS. Mídia provisionada pelo workflow de plan/apply no PR. Fila de trabalho, DLQ e role local definidas e testadas com mocks; provisionamento e deploy das aplicações ainda pendentes.
 
 | Item | Decisão / estado |
 | --- | --- |
@@ -17,8 +17,8 @@ Estado: identidade e consultas de vídeos implementadas com testes, Compose/Post
 | GitHub Actions | Serviços com CI própria; infraestrutura com workflow único de validação/plan/apply no PR; OIDC sem chaves permanentes |
 | AWS | us-east-1; EKS, RDS privado e acesso SSM planejados |
 | Secrets Manager | Um único secret agregado planejado; credenciais SQL distintas; distribuição e rotação a detalhar |
-| Mensageria | Amazon SQS com DLQs; topologia Standard proposta, contratos e políticas operacionais a fechar |
-| Arquivos | S3 privado de mídia definido em Terraform, provisionamento pendente; fluxo de upload ainda não implementado |
+| Mensageria | Trabalho/DLQ Standard definidos em Terraform: retenção 4/14 dias, maxReceiveCount 5, visibilidade 120 s; demais filas planejadas |
+| Arquivos | S3 privado de mídia provisionado via Terraform; fluxo de upload ainda não implementado |
 | Autenticação | Serviço próprio, BCrypt, JWT RS256 de 30 minutos, verificação de conta/versão a cada consulta protegida; sem renovação automática |
 | Processamento | FFmpeg no worker planejado; versão e empacotamento a definir |
 | Frontend | HTML/JavaScript em S3 + CloudFront planejado; JWT em memória |
