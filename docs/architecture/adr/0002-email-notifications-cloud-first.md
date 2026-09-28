@@ -18,7 +18,7 @@ A exclusão distribuída permanece pendente. Sem banco de avisos, a Lambda não 
 
 ## Ordem de entrega
 
-Ambiente temporário para demonstração: permanecer ligado por algumas semanas, no máximo um mês, e depois ser desativado. O planejamento de infraestrutura deve incluir o encerramento dos recursos e a decisão sobre retenção de dados; esta intenção não autoriza destruir recursos existentes nesta etapa. Teto de orçamento ainda não informado.
+Ambiente temporário para demonstração: permanecer ligado por algumas semanas, no máximo um mês, e depois ser desativado. O planejamento deve incluir encerramento dos recursos e retenção de dados; esta intenção não autoriza destruir recursos existentes nesta etapa. O responsável dispensou estimativa/medição financeira e autorizou avançar com a base cloud mínima.
 
 1. Base cloud para os três serviços: rede/ECR, EKS/RDS, secret e identidades de workload.
 2. Deploy, migrations e acesso HTTPS; interface mínima para o fluxo principal.

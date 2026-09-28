@@ -55,18 +55,3 @@ resource "aws_sqs_queue_policy" "video_events_tls" {
     }]
   })
 }
-
-output "video_events_queue_url" {
-  value     = aws_sqs_queue.video_events.url
-  sensitive = true
-}
-
-output "video_events_queue_arn" {
-  value     = aws_sqs_queue.video_events.arn
-  sensitive = true
-}
-
-output "video_events_dlq_url" {
-  value     = aws_sqs_queue.video_events_dlq.url
-  sensitive = true
-}

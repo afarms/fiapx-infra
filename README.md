@@ -32,6 +32,9 @@ Configure também `MEDIA_BUCKET_NAME`, a política IAM adicional e a confiança 
 
 ## Documentação
 
+- [Estrutura Terraform](terraform/README.md).
+- [Rede/ECR e permissões de provisionamento](docs/operations/cloud-network-registry.md).
+
 - [Arquitetura integrada](docs/architecture/consolidated.md).
 - [Diagramas Mermaid](docs/architecture/diagrams.md).
 - [Contratos e topologia das filas](docs/architecture/integration.md).

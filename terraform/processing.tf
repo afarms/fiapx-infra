@@ -55,18 +55,3 @@ resource "aws_sqs_queue_policy" "tls" {
     }]
   })
 }
-
-output "processing_queue_url" {
-  value     = aws_sqs_queue.processing.url
-  sensitive = true
-}
-
-output "processing_queue_arn" {
-  value     = aws_sqs_queue.processing.arn
-  sensitive = true
-}
-
-output "processing_dlq_url" {
-  value     = aws_sqs_queue.processing_dlq.url
-  sensitive = true
-}
