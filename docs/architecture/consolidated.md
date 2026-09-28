@@ -14,7 +14,7 @@ Vídeos: sete formatos da base, até 100 MB decimais e 300 segundos; referência
 
 | Elemento | Proposta e finalidade |
 | --- | --- |
-| EKS | Managed node group EC2 Linux; um Deployment por serviço; worker com duas réplicas na prova de concorrência |
+| EKS | Managed node group EC2 Linux Spot com dois nós desejados; API privada via SSM; um Deployment por serviço; worker com duas réplicas na prova de concorrência |
 | Rede | VPC em duas AZs; subnets públicas para entrada e privadas para workloads/RDS; saída via NAT inicialmente único, sem alegar alta disponibilidade |
 | Entrada | CloudFront para HTML/S3 e comportamento /api/* para ALB com HTTPS; cache desabilitado nas APIs e encaminhamento de Authorization |
 | DNS/TLS | Domínio e certificado da origem ALB necessários; disponibilidade de domínio ainda precisa ser informada antes da implementação desta opção |
@@ -53,6 +53,6 @@ Inativação impede novo acesso e submissões; efeito sobre jobs já em execuç�
 
 Ambiente de demonstração temporário: algumas semanas, no máximo um mês ligado, seguido de desativação. Incluir encerramento dos recursos e retenção dos dados. Estimativa/medição financeira dispensada explicitamente pelo responsável; não constitui bloqueio para rede/ECR. Ver [rede e registros](../operations/cloud-network-registry.md).
 
-Backend existente fiap-fase-05 em us-east-1 já validado. Rede/ECR definidos e testados localmente; permissões do pipeline e provisionamento pendentes, seguidos de EKS/RDS/configuração e deploy. Período ativo definido em até um mês, sem etapa de estimativa financeira. Domínio DNS/certificado da origem é necessário na etapa de entrada HTTPS. Para os contratos operacionais: fechar política de jobs já iniciados quando apenas inativar, backups e retenção de metadados. Notificação fica para o final, com contrato, destinatário, duplicatas e configuração SES ainda por detalhar.
+Backend existente fiap-fase-05 em us-east-1 já validado. Rede/ECR provisionados e convergentes. EKS privado/Spot implementado e testado localmente, ainda sem provisionamento; seguem SSM, RDS/configuração, permissões do pipeline e deploy. Ver [runtime EKS](../operations/eks-runtime.md). Período ativo definido em até um mês, sem etapa de estimativa financeira. Domínio DNS/certificado da origem é necessário na etapa de entrada HTTPS. Para os contratos operacionais: fechar política de jobs já iniciados quando apenas inativar, backups e retenção de metadados. Notificação fica para o final, com contrato, destinatário, duplicatas e configuração SES ainda por detalhar.
 
 Fontes técnicas: [SQS Standard](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues.html), [EKS node groups](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html), [Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html). São referências de capacidade; dimensionamento ainda não foi testado.

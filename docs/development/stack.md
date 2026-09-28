@@ -13,7 +13,7 @@ Estado: identidade, upload, processamento, consultas, download e limpeza impleme
 | Testes | JUnit/Mockito; JaCoCo com gate de 90% em linhas e branches; core compilado isoladamente |
 | OpenAPI | springdoc 3.1.1; Swagger e documentação HTTP validados localmente |
 | Containers | Rancher Desktop/Moby; imagens multi-stage JDK → JRE Alpine 21.0.12_8, usuário não-root |
-| Terraform | 1.14.7; provider AWS 6.14.1 fixado; backend S3 com locking nativo, mídia configurada e testes mock |
+| Terraform | 1.14.7; provider AWS 6.14.1 fixado; backend S3 com locking nativo, mídia configurada e validação estática |
 | GitHub Actions | Serviços com CI própria; infraestrutura com workflow único de validação/plan/apply no PR; OIDC sem chaves permanentes |
 | AWS | us-east-1; EKS, RDS privado e acesso SSM planejados |
 | Secrets Manager | Um único secret agregado planejado; credenciais SQL distintas; distribuição e rotação a detalhar |

@@ -5,7 +5,7 @@
 Um único workflow, **Terraform**, executa automaticamente ao abrir, reabrir ou atualizar um PR para `main`:
 
 1. Confere que o PR vem deste repositório e que autor e executor são o proprietário.
-2. Executa `make verify`: formatação, inicialização local, validação e testes mock.
+2. Executa `make verify`: formatação, inicialização local, validação estática.
 3. Autentica na AWS por OIDC e inicializa o backend S3.
 4. Confere a revisão com `make check-pr` e executa `make plan`, salvando o plano no runner.
 5. Repete `make check-pr` imediatamente antes de `make apply`, que usa exatamente o plano salvo.
@@ -100,7 +100,7 @@ A saída deve conter `assumed-role/fiapx-video-local/`. Ela contém o ID da cont
 
 Para o incremento de rede/ECR, instalar as políticas adicionais de [rede e registros](cloud-network-registry.md#permissões-do-pipeline) antes de publicar o PR. São políticas customer-managed separadas, sem substituir as atuais. A [estrutura Terraform](../../terraform/README.md) separa versões, provider, entradas e saídas dos recursos sem mudar o backend.
 
-`make verify` não usa AWS; baixa o provider fixado e executa testes mock. `make fmt` formata arquivos e `make lock` gera checksums Windows/Linux. `make init`, `make plan`, `make apply` e `make check-drift` são comandos remotos usados pelo workflow; apply altera recursos.
+`make verify` não usa AWS; baixa o provider fixado e valida a configuração. `make fmt` formata arquivos e `make lock` gera checksums Windows/Linux. `make init`, `make plan`, `make apply` e `make check-drift` são comandos remotos usados pelo workflow; apply altera recursos.
 
 - Falha em validação: corrigir o arquivo indicado antes de autenticar.
 - Falha em configuração: conferir Secret/Variables.
@@ -109,7 +109,7 @@ Para o incremento de rede/ECR, instalar as políticas adicionais de [rede e regi
 - Plano obsoleto ou apply parcial: corrigir a causa e executar novamente, gerando novo plano.
 - Mudanças na verificação final: investigar drift; o check permanece vermelho.
 
-OIDC, backend, bucket de mídia e fluxo completo de plan/apply no PR já tiveram execução real validada. As filas e a role local estão definidas e testadas com mocks; o provisionamento deste incremento depende da política adicional e de um run completo sem drift. EKS, RDS, demais filas, publicação ECR e deploy das aplicações continuam pendentes. Os serviços mantêm seus próprios workflows de testes e build.
+OIDC, backend, bucket de mídia e fluxo completo de plan/apply no PR já tiveram execução real validada. As filas e a role local estão definidas; o provisionamento deste incremento depende da política adicional e de um run completo sem drift. EKS, RDS, demais filas, publicação ECR e deploy das aplicações continuam pendentes. Os serviços mantêm seus próprios workflows de testes e build.
 
 ## Referências oficiais
 

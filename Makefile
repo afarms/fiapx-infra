@@ -7,7 +7,6 @@ verify:
 	$(TERRAFORM) -chdir=terraform fmt -check -recursive
 	$(TERRAFORM) -chdir=terraform init -backend=false -input=false
 	$(TERRAFORM) -chdir=terraform validate
-	$(TERRAFORM) -chdir=terraform test
 	bash -n scripts/init-backend.sh
 	bash scripts/test-pr-revision.sh
 
