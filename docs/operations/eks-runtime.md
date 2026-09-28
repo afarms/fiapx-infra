@@ -1,6 +1,6 @@
 # Runtime EKS privado
 
-Status: configuração implementada e validada localmente; cluster ainda não provisionado. Rede e ECR já provisionados. O acesso administrativo via SSM, RDS, secret e permissões adicionais do pipeline serão preparados antes do deploy deste incremento.
+Status: configuração implementada e validada localmente; cluster ainda não provisionado. Rede e ECR já provisionados. O acesso administrativo via SSM, RDS e secret permanecem nos próximos incrementos. As [permissões do pipeline](eks-pipeline-permissions.md) foram instaladas após a primeira falha de apply.
 
 O cluster usa Kubernetes 1.35, endpoint somente privado e managed node group com capacidade desejada de dois nós Spot nas subnets privadas. Os tipos m6i.large, m6a.large e m5.large ampliam as opções de capacidade x86. Spot pode sofrer interrupção ou indisponibilidade; duas subnets não garantem um nó em cada zona. O reparo automático está habilitado.
 
@@ -16,6 +16,6 @@ Logs do control plane, incluindo auditoria, têm retenção de sete dias. A prot
 
 `make verify` valida formatação, configuração e proteção de revisão de PR. A validação estática não demonstra capacidade Spot, inicialização dos nós ou funcionamento dos add-ons. Após provisionar, verificar cluster ACTIVE, nós Ready, add-ons ACTIVE e acesso pela rede privada.
 
-Antes de abrir o PR de implantação, concluir permissões e tempos de execução do pipeline, SSM e banco/configuração. O workflow atual aplica infraestrutura durante o PR; os arquivos desta etapa isolada ainda não constituem uma entrega pronta para implantação.
+O workflow aplica infraestrutura durante o PR. Permissões EKS e sessão de duas horas foram preparadas; a execução remota deve confirmar a convergência. SSM e banco/configuração seguem pendentes e não impedem a criação desta base EKS.
 
 Referências: [managed node groups](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html), [roles dos nós](https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html) e [launch templates](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html).
