@@ -1,6 +1,6 @@
 # Fila de resultados e acesso local de processamento
 
-Terraform preparado e validado localmente; fila de resultados e role do worker ainda não provisionadas. Os consumidores dos serviços de processamento e vídeos estão implementados e testados localmente. A fila de trabalho/DLQ e a role do produtor já foram provisionadas anteriormente.
+Fila de resultados/DLQ e role local do worker provisionadas pelo pipeline; consumidores de processamento e vídeos implementados e testados localmente. As permissões de limpeza de resultados também foram integradas e aplicadas. Provisionamento não comprova execução integrada do processamento/download na AWS, que continua pendente. Este estado corrige as indicações históricas de preparação abaixo.
 
 ## Recursos
 
@@ -16,7 +16,7 @@ As filas rejeitam transporte sem TLS e possuem prevent_destroy. O contador de re
 ## Permissões das aplicações
 
 - Worker: GetObject em originals/*; GetObject/PutObject/DeleteObject e listagem restrita a results/*; ReceiveMessage/ChangeMessageVisibility/DeleteMessage somente na fila de trabalho; SendMessage somente na fila de resultados.
-- Vídeos: preserva permissões anteriores do upload/produtor; passa a ReceiveMessage/ChangeMessageVisibility/DeleteMessage somente na fila de resultados e GetObject em results/*.
+- Vídeos: preserva permissões anteriores do upload/produtor; ReceiveMessage/ChangeMessageVisibility/DeleteMessage somente na fila de resultados e GetObject/DeleteObject em results/*, para download e limpeza assíncrona.
 - Nenhuma destas policies permite escrever no estado Terraform, gerenciar IAM, consumir DLQs ou alterar a configuração de filas. A policy do worker não permite remover originais ou consumir resultados.
 
 As permissões DeleteMessage habilitam ACK explícito. As aplicações o executam somente após commit do efeito durável; IAM não consegue impor a ordem da transação. Eventos de resultado usam inbox + efeito em uma transação, e worker usa resultado + outbox. Heartbeat/ACK e deduplicação foram testados localmente; a validação AWS do processamento permanece pendente.

@@ -1,6 +1,6 @@
 # Stack e política de versões
 
-Estado: identidade e consultas de vídeos implementadas com testes, Compose/PostgreSQL e CI. OIDC e backend/lock Terraform verificados na AWS. Mídia provisionada pelo workflow de plan/apply no PR. Fila de trabalho, DLQ e role local definidas e testadas com mocks; provisionamento e deploy das aplicações ainda pendentes.
+Estado: identidade, upload, processamento, consultas, download e limpeza implementados e integrados. Backend, mídia, filas trabalho/resultados, DLQs e roles locais provisionados. Deploy das aplicações e validação integrada na cloud pendentes; notificação por e-mail será implementada ao final.
 
 | Item | Decisão / estado |
 | --- | --- |
@@ -18,11 +18,11 @@ Estado: identidade e consultas de vídeos implementadas com testes, Compose/Post
 | AWS | us-east-1; EKS, RDS privado e acesso SSM planejados |
 | Secrets Manager | Um único secret agregado planejado; credenciais SQL distintas; distribuição e rotação a detalhar |
 | Mensageria | Trabalho/DLQ Standard definidos em Terraform: retenção 4/14 dias, maxReceiveCount 5, visibilidade 120 s; demais filas planejadas |
-| Arquivos | S3 privado de mídia provisionado via Terraform; fluxo de upload ainda não implementado |
+| Arquivos | S3 privado de mídia provisionado; upload, download e limpeza implementados |
 | Autenticação | Serviço próprio, BCrypt, JWT RS256 de 30 minutos, verificação de conta/versão a cada consulta protegida; sem renovação automática |
-| Processamento | FFmpeg no worker planejado; versão e empacotamento a definir |
+| Processamento | FFmpeg empacotado no worker; implementação e testes locais concluídos, validação integrada AWS pendente |
 | Frontend | HTML/JavaScript em S3 + CloudFront planejado; JWT em memória |
-| Notificações | Avisos persistidos na interface, sem e-mail; serviço ainda planejado |
+| Notificações | SQS → Lambda → SES, somente e-mail de falha definitiva; runtime/contrato a definir; sem serviço Java, API ou banco de avisos |
 | Observabilidade | Probes HTTP disponíveis; ferramentas e arquitetura de observabilidade cloud a definir |
 
 ## Persistência e composição

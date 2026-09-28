@@ -1,6 +1,6 @@
 # Diagramas de arquitetura
 
-Desenho de referência, ainda não implantado. Os diagramas complementam a [visão integrada](consolidated.md) e os [contratos](integration.md). Região da aplicação: Norte da Virgínia (us-east-1). Domínio/certificado, tamanhos de instância e parâmetros operacionais ainda precisam de definição. A topologia representa quatro microsserviços, não quatro Pods fixos.
+Desenho de referência, ainda não implantado integralmente. Os diagramas complementam a [visão integrada](consolidated.md) e os [contratos](integration.md). Região: us-east-1. Domínio/certificado, dimensionamento e parâmetros operacionais ainda precisam de definição. O alvo é três microsserviços no EKS e uma Lambda de e-mail. Notificação e exclusão distribuída são fluxos planejados, não implementados.
 
 ## Componentes e infraestrutura
 
@@ -27,31 +27,33 @@ flowchart LR
     CF -->|"Frontend privado via OAC"| WEB[("S3<br/>Frontend")]
     CF -->|"/api/* sem cache"| ALB["ALB<br/>Origem HTTPS"]
 
-    subgraph EKS["Amazon EKS - quatro microsserviços"]
+    subgraph EKS["Amazon EKS - três microsserviços"]
         direction TB
         ID["Identidade<br/>Usuários, JWT e permissões"]
         VID["Vídeos<br/>Upload, status e download"]
-        NOTIF["Notificações<br/>Avisos persistidos"]
         PROC["Processamento<br/>FFmpeg e ZIP<br/>Sem API pública de negócio"]
     end
 
-    ALB -->|"APIs de identidade, vídeos e notificações"| EKS
-    EKS -->|"Cada serviço acessa seu banco"| DB[("RDS PostgreSQL privado<br/>Uma instância, quatro bancos<br/>Identidade · Vídeos<br/>Processamento · Notificações")]
+    ALB -->|"APIs de identidade e vídeos"| EKS
+    EKS -->|"Cada serviço acessa seu banco"| DB[("RDS PostgreSQL privado<br/>Uma instância, três bancos<br/>Identidade · Vídeos · Processamento")]
     EKS <-->|"Vídeos e processamento: objetos"| MEDIA[("S3 privado<br/>Originais e ZIPs")]
     EKS <-->|"Publicação e consumo por serviço"| QUEUES["SQS<br/>5 filas funcionais + 5 DLQs"]
+    QUEUES -->|"Falha definitiva"| NOTIF["Lambda de e-mail"]
+    NOTIF -->|"Solicita envio"| SES["SES"]
+    SES -->|"E-mail de erro"| OWNER["Dono do vídeo"]
 
     classDef access fill:#F3E8FF,stroke:#7E22CE,color:#3B0764,stroke-width:2px
     classDef service fill:#DBEAFE,stroke:#1D4ED8,color:#172554,stroke-width:2px
     classDef storage fill:#DCFCE7,stroke:#15803D,color:#14532D,stroke-width:2px
     classDef queue fill:#FEF3C7,stroke:#B45309,color:#451A03,stroke-width:2px
-    class USER,CF,ALB access
-    class ID,VID,NOTIF,PROC service
+    class USER,CF,ALB,OWNER access
+    class ID,VID,NOTIF,PROC,SES service
     class WEB,DB,MEDIA storage
     class QUEUES queue
     style EKS fill:#EFF6FF,stroke:#1D4ED8,stroke-width:2px,color:#172554
 ```
 
-**Conexões internas omitidas para legibilidade:** vídeos, notificações e processamento consultam identidade conforme seus contratos de autorização. Não há um quinto serviço de entrada dentro do EKS. ALB encaminha as rotas aos serviços HTTP, sem expor o worker. O detalhamento de produtores, consumidores e filas aparece nos diagramas de mensageria abaixo.
+**Conexões internas omitidas para legibilidade:** vídeos e processamento consultam identidade conforme seus contratos. A obtenção segura do destinatário da Lambda ainda será definida. ALB encaminha rotas aos serviços HTTP, sem expor o worker ou criar uma API de notificações. O detalhamento das filas aparece abaixo; apenas trabalho e resultados estão provisionados no estado atual.
 
 **Limites de rede:** ALB fica na camada de entrada da VPC, workloads e RDS na camada privada. CloudFront, S3 e SQS são serviços AWS representados fora do bloco EKS, não Pods. O desenho é lógico e não representa subnets ou AZs em escala. A origem HTTPS do ALB requer domínio/certificado válido.
 
@@ -64,7 +66,7 @@ flowchart LR
     subgraph PROVISION["A. Provisionamento"]
         direction LR
         TF["Terraform<br/>fiapx-infra"] -->|"State e lock"| STATE[("S3 preexistente<br/>tfstate")]
-        TF -->|"Provisiona recursos declarados"| AWSRES["Infraestrutura AWS<br/>Rede, EKS, RDS, SQS, S3<br/>CloudFront, ECR, secret e IAM"]
+        TF -->|"Provisiona recursos declarados"| AWSRES["Infraestrutura AWS<br/>Rede, EKS, RDS, SQS, S3<br/>CloudFront, ECR, secret, IAM<br/>Lambda e SES ao final"]
     end
 
     subgraph RELEASE["B. Implantação dos serviços"]
@@ -149,13 +151,14 @@ DLQs deste fluxo: `processing-work` e `videos-events` possuem destinos de falha 
 
 ### 2. Notificação de falha
 
-Começa quando vídeos registra uma falha terminal. O aviso é persistido para o dono e a interface o obtém por consulta autenticada.
+Planejado para depois do fluxo principal na cloud. Começa quando vídeos registra uma falha definitiva e outbox; a Lambda envia e-mail ao dono. Contrato, destinatário e política de duplicatas ainda serão detalhados.
 
 ```mermaid
 flowchart LR
     V["Vídeos<br/>Registra FAILED e outbox de aviso"] -->|VideoFailed| QN["SQS<br/>notifications-events"]
-    QN -->|Consome evento| N["Notificações<br/>Persiste aviso para o dono"]
-    UI["Interface<br/>Consulta e exibe os avisos"] -.->|GET autenticado /notifications| N
+    QN -->|Consome evento| N["Lambda<br/>Envia e-mail de erro"]
+    N -->|Solicita envio| SES["SES"]
+    SES -->|E-mail| OWNER["Dono do vídeo"]
 
     classDef service fill:#DBEAFE,stroke:#1D4ED8,color:#172554,stroke-width:2px
     classDef queue fill:#FEF3C7,stroke:#B45309,color:#451A03,stroke-width:2px
@@ -163,44 +166,41 @@ flowchart LR
     classDef ui fill:#F3E8FF,stroke:#7E22CE,color:#3B0764,stroke-width:2px
     class V service
     class QN queue
-    class N result
-    class UI ui
+    class N,SES result
+    class OWNER ui
 ```
 
-A fila `notifications-events` possui DLQ própria. O navegador consulta a API de notificações, sem consumir a fila diretamente. Um aviso já persistido continua disponível após novo login.
+A fila `notifications-events` terá DLQ própria e retentativas limitadas. Sem consulta de avisos pelo navegador ou banco de notificações. Falha no envio não reinicia o vídeo. Envio externo e confirmação do consumo não são uma transação única; não se promete exatamente um e-mail.
 
 ### 3. Exclusão definitiva de usuário
 
-Identidade bloqueia a conta e publica uma solicitação para cada serviço proprietário dos dados. A exclusão só termina depois das três confirmações de limpeza.
+Identidade bloqueia a conta e solicita limpeza a vídeos e processamento. A exclusão só termina após as confirmações dos proprietários. A antiga limpeza do banco de avisos foi removida; a política de e-mails pendentes após exclusão ainda precisa de definição antes de implementar este fluxo.
 
 ```mermaid
 flowchart TB
     I["Identidade<br/>Bloqueia conta e solicita exclusão"] -->|UserDeletionRequested| QC["SQS<br/>processing-control"]
     I -->|UserDeletionRequested| QV["SQS<br/>videos-events"]
-    I -->|UserDeletionRequested| QN["SQS<br/>notifications-events"]
 
     QC -->|Consome solicitação| P["Processamento<br/>Encerra execuções e limpa dados"]
     QV -->|Consome solicitação| V["Vídeos<br/>Remove arquivos e registros"]
-    QN -->|Consome solicitação| N["Notificações<br/>Remove avisos"]
 
     P -->|UserDataDeleted: processamento| QI["SQS<br/>identity-events"]
     V -->|UserDataDeleted: vídeos| QI
-    N -->|UserDataDeleted: notificações| QI
 
-    QI -->|Consome confirmações| WAIT["Identidade<br/>Aguarda os três participantes"]
+    QI -->|Consome confirmações| WAIT["Identidade<br/>Aguarda vídeos e processamento"]
     WAIT -->|Somente após todas as confirmações| DONE["Identidade<br/>Remove perfil e credenciais<br/>Conclui exclusão"]
 
     classDef service fill:#DBEAFE,stroke:#1D4ED8,color:#172554,stroke-width:2px
     classDef queue fill:#FEF3C7,stroke:#B45309,color:#451A03,stroke-width:2px
     classDef result fill:#DCFCE7,stroke:#15803D,color:#14532D,stroke-width:2px
-    class I,P,V,N,WAIT service
-    class QC,QV,QN,QI queue
+    class I,P,V,WAIT service
+    class QC,QV,QI queue
     class DONE result
 ```
 
 Cada fila representada possui DLQ própria. Se uma solicitação ou confirmação falhar, a exclusão permanece pendente e a conta continua bloqueada. Cada serviço confirma somente após reconciliar escritas e execuções concorrentes, evitando que um trabalho atrasado recrie dados já removidos.
 
-Publicações usam outbox por destino, consumo usa inbox e efeito transacional idempotente. Réplicas de um serviço compartilham sua fila. SQS Standard pode duplicar e reordenar mensagens, tentativa e versão impedem regressão do estado. A divisão visual mantém a topologia existente de cinco filas funcionais e cinco DLQs.
+Publicações usam outbox por destino, consumo de domínio usa inbox e efeito transacional idempotente. Réplicas compartilham sua fila. SQS Standard pode duplicar e reordenar mensagens, tentativa e versão impedem regressão do estado. O alvo mantém cinco filas funcionais e cinco DLQs, com notificações dedicada somente a e-mail; isso não representa cinco filas já provisionadas.
 
 ## Upload, processamento e download
 
@@ -214,7 +214,8 @@ sequenceDiagram
     participant Q as SQS
     participant P as Processamento
     participant DP as Banco Processamento
-    participant N as Notificacoes
+    participant N as Lambda Email
+    participant SES as SES
     U->>I: Cadastro ou login
     I-->>U: JWT de 30 minutos
     U->>V: Upload autenticado + Idempotency-Key
@@ -245,7 +246,8 @@ sequenceDiagram
     opt Resultado FAILED
         V->>Q: Publicar VideoFailed
         Q->>N: Entregar aviso
-        N->>N: Persistir aviso idempotente por dono
+        N->>SES: Solicitar envio de email ao dono
+        Note over N,SES: Contrato e duplicatas ainda a detalhar
     end
     U->>V: Consultar status ou baixar ZIP
     V->>I: Revalidar conta e permissoes
@@ -266,14 +268,13 @@ sequenceDiagram
     participant Q as SQS
     participant P as Processamento
     participant V as Videos
-    participant N as Notificacoes
     A->>I: DELETE usuario
     I->>I: Validar ADMIN e proteger ultimo ADMIN
     I->>DI: Bloqueio + operacao + outbox por destino
     DI-->>I: Commit
     I-->>A: 202 com deletionId
     Note over I: Novas chamadas protegidas sao negadas
-    I->>Q: Publicar exclusao nos tres destinos
+    I->>Q: Publicar exclusao para videos e processamento
     par Encerrar processamento
         Q->>P: UserDeletionRequested
         P->>P: Bloquear owner, encerrar execucoes, limpar
@@ -283,10 +284,6 @@ sequenceDiagram
         V->>V: Bloquear owner, reconciliar produtores e objetos
         Note over V,P: Confirmar limpeza apenas apos encerrar produtores conhecidos
         V->>Q: Confirmacao duravel por outbox
-    and Limpar notificacoes
-        Q->>N: UserDeletionRequested
-        N->>N: Bloquear owner, remover avisos
-        N->>Q: Confirmacao duravel por outbox
     end
     Q->>I: Confirmacoes em identity-events
     I->>DI: Registrar participantes concluidos
