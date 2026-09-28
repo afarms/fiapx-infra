@@ -1,6 +1,6 @@
 TERRAFORM := terraform
 .DEFAULT_GOAL := verify
-.PHONY: verify fmt lock init plan apply check-drift
+.PHONY: verify fmt lock init plan apply check-drift check-pr
 
 # Local validation without AWS credentials or remote backend initialization.
 verify:
@@ -9,6 +9,10 @@ verify:
 	$(TERRAFORM) -chdir=terraform validate
 	$(TERRAFORM) -chdir=terraform test
 	bash -n scripts/init-backend.sh
+	bash scripts/test-pr-revision.sh
+
+check-pr:
+	bash scripts/check-pr-revision.sh
 
 fmt:
 	$(TERRAFORM) -chdir=terraform fmt -recursive

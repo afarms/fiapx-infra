@@ -7,15 +7,17 @@ Um único workflow, **Terraform**, executa automaticamente ao abrir, reabrir ou 
 1. Confere que o PR vem deste repositório e que autor e executor são o proprietário.
 2. Executa `make verify`: formatação, inicialização local, validação e testes mock.
 3. Autentica na AWS por OIDC e inicializa o backend S3.
-4. Executa `make plan`, salvando o plano no runner.
-5. Executa `make apply` sobre exatamente esse plano, sem nova escolha manual.
+4. Confere a revisão com `make check-pr` e executa `make plan`, salvando o plano no runner.
+5. Repete `make check-pr` imediatamente antes de `make apply`, que usa exatamente o plano salvo.
 6. Confere que não restam mudanças com `make check-drift`.
 
 Qualquer erro interrompe as etapas seguintes e falha o check **terraform-validate**, inclusive erro no apply. Não há `continue-on-error`, `pull_request_target`, escolha manual de operação nem apply após o merge. O checkout padrão de `pull_request` testa o merge proposto com a base. PR com conflito precisa ser corrigido para executar.
 
 O apply acontece **antes do merge**, por escolha do projeto. A infraestrutura pode mudar mesmo se o PR depois for fechado sem merge; falha de apply também pode deixar alterações parciais. Corrigir o código e executar novamente, sem presumir rollback. A HashiCorp exemplifica plan no PR/apply após merge; o fluxo adotado aqui antecipa o apply para condicioná-lo ao check obrigatório.
 
-Há um estado compartilhado: integre um PR de infraestrutura por vez. A concorrência global e o lock S3 evitam operações simultâneas, mas não isolam os recursos entre PRs. Não cancelar um apply em andamento nem excluir seu lock manualmente. Pessoas com permissão de escrita no repositório devem ser confiáveis, pois podem alterar código e workflow. PRs de forks ou de outros autores falham antes do checkout/autenticação neste fluxo solo.
+Há um estado compartilhado: apenas um PR próprio para main pode estar aberto durante o deploy. `make check-pr` consulta o GitHub e falha se houver outro PR do proprietário no mesmo repositório, se o PR tiver sido fechado/atualizado ou se a base do evento e o primeiro pai do merge em checkout não coincidirem com a main atual. A verificação ocorre antes do plan e novamente antes do apply; atualizar a branch e executar o novo workflow resolve base obsoleta, enquanto repetir um run antigo não atualiza seu checkout.
+
+A concorrência global e o lock S3 evitam operações simultâneas; a conferência de revisões não trava a main e não protege contra alterações administrativas por bypass durante o apply. Se fechar um PR já aplicado sem integrá-lo, reconcilie as mudanças aplicadas antes de iniciar outro PR. Não cancelar um apply em andamento nem excluir seu lock manualmente. Pessoas com permissão de escrita no repositório devem ser confiáveis, pois podem alterar código e workflow. PRs de forks ou de outros autores falham antes do checkout/autenticação neste fluxo solo.
 
 ## Configuração GitHub
 
@@ -52,7 +54,7 @@ Se a role continuar aceitando só main, a etapa Authenticate using OIDC falhará
 
 Preservar a política existente para listar `fiap-fase-05`, ler/gravar `fiapx-infra/tfstate/terraform.tfstate` e ler/gravar/excluir `fiapx-infra/tfstate/terraform.tfstate.tflock`.
 
-Adicionar ou atualizar a política de provisionamento usando [media-pipeline-policy.json](media-pipeline-policy.json), substituindo `REPLACE_WITH_MEDIA_BUCKET_NAME` pelo nome exato configurado no GitHub. Não substituir a política do estado por essa política adicional. Não há acesso aos objetos de mídia nem permissão de excluir o bucket. Permissões antigas exclusivas de planos em `fiapx-infra/plans/` deixam de ser necessárias; o workflow não grava nesse prefixo. Nada existente é removido automaticamente.
+Adicionar ou atualizar a política de provisionamento usando [media-pipeline-policy.json](media-pipeline-policy.json), já preenchida para `fiapx-media-files`, o nome configurado no GitHub. Na role fiapx-infra-github-actions, editar a inline policy `fiapx-media-provisioning_policy`; o Resource de ProvisionMediaBucket deve ser `arn:aws:s3:::fiapx-media-files`. O nome da política não é o nome do bucket. Se mudar MEDIA_BUCKET_NAME futuramente, ajustar esse ARN também. Não substituir a política do estado por essa política adicional. Não há acesso aos objetos de mídia nem permissão de excluir o bucket. Permissões antigas exclusivas de planos em `fiapx-infra/plans/` deixam de ser necessárias; o workflow não grava nesse prefixo. Nada existente é removido automaticamente.
 
 O bucket de estado é preexistente e não é gerenciado pelo Terraform. Região `us-east-1`, workspace `default`, criptografia solicitada SSE-S3 e lock nativo (`use_lockfile=true`), sem DynamoDB. Mantenha criptografia e bloqueio de acesso público. Versionamento não é requisito do pipeline: decisão do projeto de operar sem novas versões para limitar custos. A HashiCorp recomenda versionamento para recuperar estado; sem ele, sobrescritas/exclusões não têm essa recuperação garantida. Suspender versionamento não apaga versões antigas nem seus custos, caso existam.
 

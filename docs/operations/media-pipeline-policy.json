@@ -17,7 +17,7 @@
         "s3:GetBucketRequestPayment", "s3:GetReplicationConfiguration",
         "s3:GetLifecycleConfiguration", "s3:GetBucketObjectLockConfiguration"
       ],
-      "Resource": "arn:aws:s3:::REPLACE_WITH_MEDIA_BUCKET_NAME"
+      "Resource": "arn:aws:s3:::fiapx-media-files"
     }
   ]
 }
