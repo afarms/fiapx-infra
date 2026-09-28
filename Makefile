@@ -1,6 +1,6 @@
 TERRAFORM := terraform
 .DEFAULT_GOAL := verify
-.PHONY: verify fmt lock infra-plan infra-apply
+.PHONY: verify fmt lock init plan apply check-drift
 
 # Local validation without AWS credentials or remote backend initialization.
 verify:
@@ -8,8 +8,7 @@ verify:
 	$(TERRAFORM) -chdir=terraform init -backend=false -input=false
 	$(TERRAFORM) -chdir=terraform validate
 	$(TERRAFORM) -chdir=terraform test
-	bash -n scripts/init-backend.sh scripts/infra-delivery.sh
-	bash scripts/test-delivery-guards.sh
+	bash -n scripts/init-backend.sh
 
 fmt:
 	$(TERRAFORM) -chdir=terraform fmt -recursive
@@ -17,8 +16,16 @@ fmt:
 lock:
 	$(TERRAFORM) -chdir=terraform providers lock -platform=windows_amd64 -platform=linux_amd64
 
-infra-plan:
-	bash scripts/infra-delivery.sh plan
+init:
+	bash scripts/init-backend.sh
 
-infra-apply:
-	bash scripts/infra-delivery.sh apply
+plan:
+	bash -c 'mkdir -p .local'
+	$(TERRAFORM) -chdir=terraform plan -input=false -lock-timeout=60s -no-color -out=../.local/terraform.tfplan
+
+# A saved plan is the approval; Terraform does not prompt again.
+apply:
+	$(TERRAFORM) -chdir=terraform apply -input=false -lock-timeout=60s -no-color ../.local/terraform.tfplan
+
+check-drift:
+	$(TERRAFORM) -chdir=terraform plan -input=false -lock-timeout=60s -detailed-exitcode -no-color

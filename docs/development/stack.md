@@ -1,6 +1,6 @@
 # Stack e política de versões
 
-Estado: identidade e consultas de vídeos implementadas com testes, Compose/PostgreSQL e CI. OIDC e backend/lock Terraform verificados na AWS. Configuração de mídia e entrega manual preparadas; provisionamento e deploy das aplicações ainda pendentes.
+Estado: identidade e consultas de vídeos implementadas com testes, Compose/PostgreSQL e CI. OIDC e backend/lock Terraform verificados na AWS. Mídia definida em Terraform; entrega automática no PR configurada, com execução completa e deploy das aplicações ainda pendentes.
 
 | Item | Decisão / estado |
 | --- | --- |
@@ -14,7 +14,7 @@ Estado: identidade e consultas de vídeos implementadas com testes, Compose/Post
 | OpenAPI | springdoc 3.1.1; Swagger e documentação HTTP validados localmente |
 | Containers | Rancher Desktop/Moby; imagens multi-stage JDK → JRE Alpine 21.0.12_8, usuário não-root |
 | Terraform | 1.14.7; provider AWS 6.14.1 fixado; backend S3 com locking nativo, mídia configurada e testes mock |
-| GitHub Actions | CI de serviços e infraestrutura; autenticação AWS via OIDC, sem chaves permanentes |
+| GitHub Actions | Serviços com CI própria; infraestrutura com workflow único de validação/plan/apply no PR; OIDC sem chaves permanentes |
 | AWS | us-east-1; EKS, RDS privado e acesso SSM planejados |
 | Secrets Manager | Um único secret agregado planejado; credenciais SQL distintas; distribuição e rotação a detalhar |
 | Mensageria | Amazon SQS com DLQs; topologia Standard proposta, contratos e políticas operacionais a fechar |

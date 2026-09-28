@@ -12,4 +12,4 @@ O serviço de vídeos mantém o estado público do trabalho; processamento execu
 
 No fluxo planejado, persistência transacional com outbox e consumo idempotente sustentarão a recuperação após aceite. A exclusão de conta bloqueia novas chamadas e coordena remoção definitiva dos dados dos serviços. Falhas de limpeza permanecem pendentes até confirmação.
 
-A infraestrutura planejada usa RDS privado, SQS com DLQs, S3, CloudFront e um único secret no Secrets Manager. Este repositório já possui configuração de backend Terraform em bucket S3 preexistente, CI e workflows manuais. A autenticação OIDC foi validada; teste real do backend pendente. Parâmetros de implantação pendentes estão na visão integrada.
+A infraestrutura planejada usa RDS privado, SQS com DLQs, S3, CloudFront e um único secret no Secrets Manager. Este repositório possui backend Terraform em bucket S3 preexistente, OIDC e lock verificados. Mídia está definida em Terraform e o workflow único aplica automaticamente no PR, com execução completa ainda pendente. Parâmetros de implantação pendentes estão na visão integrada.

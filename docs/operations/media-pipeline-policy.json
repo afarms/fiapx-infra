@@ -2,18 +2,6 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "InspectStateBucketProtections",
-      "Effect": "Allow",
-      "Action": ["s3:GetBucketVersioning", "s3:GetBucketPublicAccessBlock", "s3:GetEncryptionConfiguration"],
-      "Resource": "arn:aws:s3:::fiap-fase-05"
-    },
-    {
-      "Sid": "PrivateDeliveryPlans",
-      "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject"],
-      "Resource": "arn:aws:s3:::fiap-fase-05/fiapx-infra/plans/*"
-    },
-    {
       "Sid": "ProvisionMediaBucket",
       "Effect": "Allow",
       "Action": [

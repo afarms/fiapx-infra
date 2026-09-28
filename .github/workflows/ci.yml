@@ -1,20 +1,40 @@
-name: Terraform CI
+name: Terraform
 
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
 
-permissions:
-  contents: read
+permissions: {}
+
+# One shared state: do not interrupt an apply when another PR arrives.
+concurrency:
+  group: fiapx-infra-terraform-state
+  cancel-in-progress: false
 
 jobs:
   terraform-validate:
     name: terraform-validate
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      - name: Check trusted pull request
+        env:
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ||
+                "$PR_AUTHOR" != "$GITHUB_REPOSITORY_OWNER" ||
+                "$GITHUB_ACTOR" != "$GITHUB_REPOSITORY_OWNER" ||
+                "$GITHUB_TRIGGERING_ACTOR" != "$GITHUB_REPOSITORY_OWNER" ]]; then
+            echo '::error::Deployment requires a PR and execution by the repository owner, from this repository.'
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -28,3 +48,53 @@ jobs:
 
       - name: Validate without AWS access
         run: make verify
+
+      - name: Validate AWS configuration
+        env:
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MEDIA_BUCKET_NAME: ${{ vars.MEDIA_BUCKET_NAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$AWS_ROLE_ARN" =~ ^arn:aws:iam::([0-9]{12}):role/fiapx-infra-github-actions$ ]]; then
+            echo '::error::Configure the AWS_ROLE_ARN repository secret.'
+            exit 1
+          fi
+          printf '::add-mask::%s\n' "${BASH_REMATCH[1]}"
+          printf 'EXPECTED_ACCOUNT=%s\n' "${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          [[ "$AWS_REGION" == us-east-1 ]] || { echo '::error::AWS_REGION must be us-east-1.'; exit 1; }
+          [[ "$MEDIA_BUCKET_NAME" =~ ^fiapx-media-[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$ ]] || { echo '::error::Configure MEDIA_BUCKET_NAME.'; exit 1; }
+          printf 'TF_VAR_media_bucket_name=%s\n' "$MEDIA_BUCKET_NAME" >> "$GITHUB_ENV"
+
+      - name: Authenticate using OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ env.EXPECTED_ACCOUNT }}
+          role-session-name: fiapx-pr-${{ github.run_id }}
+          role-duration-seconds: 1800
+          mask-aws-account-id: true
+          unset-current-credentials: true
+          retry-max-attempts: 2
+
+      - name: Terraform init
+        run: make init
+
+      - name: Terraform plan
+        run: make plan
+
+      - name: Terraform apply
+        run: make apply
+
+      - name: Verify no remaining changes
+        run: make check-drift
+
+      - name: Remove local plan
+        if: always()
+        run: rm -f .local/terraform.tfplan
+    env:
+      TF_IN_AUTOMATION: 'true'
+      TF_WORKSPACE: default
+      AWS_PAGER: ''
