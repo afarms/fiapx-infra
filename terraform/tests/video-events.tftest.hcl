@@ -112,8 +112,12 @@ run "result_delivery_and_least_privilege" {
       {
         Sid      = "ReadResults", Effect = "Allow", Action = ["s3:GetObject"],
         Resource = "arn:aws:s3:::fiapx-media-unit-test/results/*"
+      },
+      {
+        Sid      = "DeleteExpiredResults", Effect = "Allow", Action = ["s3:DeleteObject"],
+        Resource = "arn:aws:s3:::fiapx-media-unit-test/results/*"
       }
     ]
-    error_message = "Video results access must not permit writing results, consuming work/DLQs or managing infrastructure."
+    error_message = "Video may read/delete result keys only; no PutObject, version deletion, bucket listing, work/DLQ consumption or infrastructure access."
   }
 }

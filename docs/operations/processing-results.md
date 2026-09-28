@@ -43,3 +43,9 @@ Não compartilhar sessões do produtor/worker nem usar role de provisionamento n
 ## Validação
 
 `make verify`: fmt, init sem backend, validate, quatro cenários Terraform com provider mock e oito cenários do guard de PR aprovados. O novo cenário confere filas, redrive exclusivo, TLS, confiança local e conjunto exato de permissões. Testes mock não comprovam IAM efetivo ou entrega SQS real. Ensaio de mensagens exige serviços prontos e plano controlado de dados/limpeza.
+
+## Limpeza de resultados expirados
+
+A policy de resultados da role fiapx-video-local inclui DeleteObject apenas em results/* no bucket de mídia. O serviço de vídeos usa essa permissão para excluir ZIPs expirados após adquirir claim PostgreSQL e verificar ausência de downloads ativos. Não acrescenta PutObject, ListBucket ou DeleteObjectVersion.
+
+Mudança validada localmente com mocks; aplicação remota não realizada nesta implementação. Habilitar RESULT_CLEANUP_ENABLED somente após provisionar a permissão. A rotina preserva metadados e repete falhas de forma idempotente. Originais e órfãos do worker mantêm suas responsabilidades existentes.
