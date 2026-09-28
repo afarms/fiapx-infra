@@ -1,6 +1,6 @@
 # Rede e registros de imagens
 
-Estado: configuração Terraform validada localmente; políticas adicionais de rede/ECR instaladas na role do pipeline e validadas pelo IAM Access Analyzer sem findings. Recursos de rede/ECR ainda não provisionados. O workflow existente aplica o plano, não executa somente validação.
+Estado: rede e três ECR provisionados pelo [workflow 36495694305](https://github.com/afarms/fiapx-infra/actions/runs/36495694305), incluindo apply e verificação sem drift. Políticas adicionais instaladas e validadas pelo IAM Access Analyzer sem findings. Conferência AWS: NAT disponível, quatro subnets sem atribuição automática de IP público, security group padrão sem regras e três registros imutáveis com scan habilitado. As aplicações ainda não executam no EKS.
 
 ## Recursos
 
@@ -45,6 +45,8 @@ O security group padrão nasce automaticamente com a VPC e sem tags. No provider
 
 **Limitação real:** esse primeiro tagging não consegue provar que o grupo pertence à VPC recém-criada; também alcança outro grupo sem essas três tags na mesma conta/região. O pipeline é uma identidade de provisionamento confiável, não uma barreira contra um mantenedor malicioso. Revisar o plano para que apenas o default SG da nova VPC seja adotado. Após o primeiro apply, restringir o Resource da exceção ao ARN exato do grupo, mantendo as demais condições, ou remover a exceção se não houver nova criação prevista. Não usar a exceção para adotar grupos de outros projetos. Alterar/remover tags de propriedade por MaintainOwnedTags é bloqueado.
 
+Restrição pós-bootstrap executada na política instalada: BootstrapDefaultGroupTags agora usa o ARN exato do default SG da VPC criada. O JSON público continua sendo o modelo de instalação inicial, com ACCOUNT_ID; não sobrescrever a política instalada com esse modelo sem preservar a restrição. A versão restrita também passou no Access Analyzer sem findings. Recriar a VPC exigirá revisar essa permissão explicitamente.
+
 ### Referências e validação
 
 - [Ações, recursos e condições EC2](https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html).
@@ -52,7 +54,7 @@ O security group padrão nasce automaticamente com a VPC e sem tags. No provider
 - [Bootstrap do default security group no provider 6.14.1](https://github.com/hashicorp/terraform-provider-aws/blob/v6.14.1/internal/service/ec2/vpc_default_security_group.go).
 - [Leituras auxiliares do recurso VPC no provider fixado](https://github.com/hashicorp/terraform-provider-aws/blob/v6.14.1/internal/service/ec2/vpc_.go).
 
-make verify inclui checagens estáticas dos JSONs: ações explícitas, região, ARNs, limites de ECR, tags de propriedade, exceção restrita e tamanho de documento. Separadamente, os documentos preenchidos para a conta passaram no IAM Access Analyzer sem findings antes da instalação. Isso não é simulação IAM nem comprova execução real: permissões efetivas dependem também de SCP, permission boundary e políticas já anexadas. Apply remoto permanece pendente.
+make verify aprovou oito cenários Terraform e oito cenários do guard. Inclui checagens estáticas dos JSONs: ações explícitas, região, ARNs, limites de ECR, tags de propriedade, exceção restrita e tamanho. Separadamente, Access Analyzer e plan/apply via OIDC foram executados com sucesso. Essa evidência é restrita ao incremento de rede/ECR; não comprova EKS, RDS ou fluxo das aplicações.
 
 ## Ambiente temporário
 
