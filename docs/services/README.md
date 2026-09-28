@@ -6,7 +6,7 @@
 | [fiapx-identity-service](https://github.com/afarms/fiapx-identity-service) | Contas, JWT e autorização atual | Cadastro, login, perfil, credenciais, administração, testes e CI implementados; exclusão distribuída pendente |
 | fiapx-processing-service | Validação da mídia, extração e ZIP | Planejado |
 | fiapx-notification-service | Avisos persistidos na interface | Planejado |
-| [fiapx-infra](https://github.com/afarms/fiapx-infra) | Terraform e documentação integrada | Backend configurado, CI e workflows manuais; OIDC validado, teste remoto do backend pendente |
+| [fiapx-infra](https://github.com/afarms/fiapx-infra) | Terraform e documentação integrada | OIDC e backend verificados; mídia e workflow único de plan/apply no PR preparados, execução completa pendente |
 | fiapx-web | HTML/JavaScript estático | Planejado |
 
 Quatro microsserviços, um projeto de infraestrutura e um frontend. Um domínio por repositório, sem build agregador. Nomes sem links correspondem a projetos ainda planejados; não pressupõem repositórios publicados.

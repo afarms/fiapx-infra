@@ -19,7 +19,7 @@ Vídeos: sete formatos da base, até 100 MB decimais e 300 segundos; referência
 | Entrada | CloudFront para HTML/S3 e comportamento /api/* para ALB com HTTPS; cache desabilitado nas APIs e encaminhamento de Authorization |
 | DNS/TLS | Domínio e certificado da origem ALB necessários; disponibilidade de domínio ainda precisa ser informada antes da implementação desta opção |
 | Banco | Uma instância RDS PostgreSQL Single-AZ acadêmica; quatro bancos/usuários de domínio e usuário separado de manutenção |
-| Objetos | Bucket privado de mídia, separado do frontend e do bucket preexistente de state; proposta sem versionamento de mídia para simplificar exclusão |
+| Objetos | Bucket privado de mídia definido em Terraform, separado do frontend e do estado; mídia sem versionamento e estado sem exigência de versionamento |
 | Filas | SQS Standard; cinco filas funcionais, cada uma com sua DLQ; outbox por destinatário, sem SNS adicional nesta proposta |
 | Identidade AWS | Pod Identity por service account para S3/SQS; acesso interno à identidade autenticado por credencial de serviço e restrito pela rede |
 | Imagens | ECR por serviço, imagem identificada por digest; versões fixadas após build validado |
@@ -50,6 +50,6 @@ Inativação impede novo acesso e submissões; efeito sobre jobs já em execuç�
 
 ## Pontos para fechamento
 
-Para implantação em us-east-1: confirmar nome/região do bucket de state preexistente, domínio DNS/certificado da origem e dimensionamento. Para os contratos operacionais: fechar política de jobs já iniciados quando apenas inativar, parâmetros de recuperação, backups e retenção de metadados. Essas lacunas não alteram os limites dos quatro serviços representados nos diagramas.
+Backend existente fiap-fase-05 em us-east-1 já validado. Para implantação das aplicações: confirmar domínio DNS/certificado da origem e dimensionamento. Para os contratos operacionais: fechar política de jobs já iniciados quando apenas inativar, parâmetros de recuperação, backups e retenção de metadados. Essas lacunas não alteram os limites dos quatro serviços representados nos diagramas.
 
 Fontes técnicas: [SQS Standard](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues.html), [EKS node groups](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html), [Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html). São referências de capacidade; dimensionamento ainda não foi testado.
