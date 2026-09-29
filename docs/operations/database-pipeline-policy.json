@@ -2,9 +2,16 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "ReadDatabaseInstancesInRegion",
+      "Effect": "Allow",
+      "Action": "rds:DescribeDBInstances",
+      "Resource": "arn:aws:rds:us-east-1:ACCOUNT_ID:db:*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "us-east-1"}}
+    },
+    {
       "Sid": "ManageDatabase",
       "Effect": "Allow",
-      "Action": ["rds:CreateDBInstance", "rds:ModifyDBInstance", "rds:DescribeDBInstances", "rds:AddTagsToResource", "rds:RemoveTagsFromResource", "rds:ListTagsForResource"],
+      "Action": ["rds:CreateDBInstance", "rds:ModifyDBInstance", "rds:AddTagsToResource", "rds:RemoveTagsFromResource", "rds:ListTagsForResource"],
       "Resource": "arn:aws:rds:us-east-1:ACCOUNT_ID:db:fiapx-postgres"
     },
     {

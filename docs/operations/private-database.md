@@ -32,6 +32,8 @@ O workflow aplica durante o PR. Executar os passos abaixo antes da publicação:
 
 O primeiro plan exige o secret existente. Não há valor padrão fictício nem criação de um segundo secret para contornar esse pré-requisito. A service-linked role do RDS pode ser criada pela permissão restrita a `rds.amazonaws.com`.
 
+A leitura `DescribeDBInstances` do pipeline abrange `db:*` somente na conta e região us-east-1: o provider também consulta instâncias sem restringir a autorização ao ARN do nome fiapx-postgres. Criação e alteração continuam limitadas ao banco próprio. Essa permissão de consulta não concede conexão SQL ou acesso aos dados.
+
 ## Execução e validação
 
 ```bash
