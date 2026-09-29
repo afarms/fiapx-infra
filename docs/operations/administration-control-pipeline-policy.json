@@ -126,6 +126,7 @@
       "Action": [
         "ssm:CreateDocument",
         "ssm:DescribeDocument",
+        "ssm:DescribeDocumentPermission",
         "ssm:GetDocument",
         "ssm:UpdateDocument",
         "ssm:UpdateDocumentDefaultVersion",
