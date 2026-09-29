@@ -6,11 +6,11 @@ Status: máquina administrativa provisionada, SSM Online e sessão real validada
 
 Uma t3.micro Spot AL2023 na primeira subnet privada, sem IP público, chave SSH ou ingress. A requisição Spot é persistente, com interrupção stop: sessões e túneis podem cair; disponibilidade depende de capacidade Spot. Disco gp3 de 12 GiB criptografado, IMDSv2 obrigatório e créditos de CPU standard. A máquina é exclusiva para administração; não executa aplicações nem guarda arquivos de negócio.
 
-Saída HTTPS usa a NAT existente para SSM, APIs AWS e download do kubectl. Resolução DNS usa o resolver da VPC. A API privada do EKS permite 443 somente a partir do SG administrativo adicional. Ainda não há regra de saída 5432: ela será criada junto do SG do RDS, com referências entre grupos.
+Saída HTTPS usa a NAT existente para SSM, APIs AWS e download do kubectl. Resolução DNS usa o resolver da VPC. A API privada do EKS permite 443 somente a partir do SG administrativo adicional. O incremento de [banco privado](private-database.md) declara saída 5432 referenciando o SG do RDS; sua aplicação ainda está pendente.
 
 AL2023 e kubectl 1.35.3 estão fixados; o bootstrap verifica o SHA-256 antes de instalar o binário. AWS CLI v2 e SSM Agent vêm na AMI padrão. Falha no bootstrap não equivale a falha de criação EC2: verificar cloud-init e o marcador de conclusão abaixo antes de usar a máquina.
 
-A role da instância recebe AmazonSSMManagedInstanceCore, DescribeCluster somente no fiapx, escrita no grupo de logs administrativo e acesso administrativo explícito ao Kubernetes. Não recebe credenciais do banco ou acesso ao secret nesta etapa. Quem consegue executar comandos nessa máquina consegue administrar o cluster: restringir StartSession/SendCommand a administradores confiáveis. O operador existente rafael-admin será usado na primeira validação; nenhuma credencial permanente vai para a instância ou o user data.
+A role da instância recebe AmazonSSMManagedInstanceCore, DescribeCluster somente no fiapx, escrita no grupo de logs administrativo e acesso administrativo explícito ao Kubernetes. O incremento RDS adiciona leitura apenas do secret fiapx/runtime e DescribeDBInstances do banco próprio. Quem consegue executar comandos nessa máquina consegue administrar cluster e banco: restringir StartSession/SendCommand a administradores confiáveis. Nenhuma credencial permanente vai para o user data.
 
 ## Permissões do pipeline antes do PR
 

@@ -48,6 +48,9 @@ jobs:
           terraform_version: 1.14.7
           terraform_wrapper: false
 
+      - name: Install database tooling
+        run: python3 -m pip install -r scripts/database/requirements.txt
+
       - name: Validate without AWS access
         run: make verify
 
@@ -103,6 +106,14 @@ jobs:
 
       - name: Verify no remaining changes
         run: make check-drift
+
+      - name: Check revision before database bootstrap
+        run: make check-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Bootstrap private databases
+        run: make bootstrap-database
 
       - name: Remove local plan
         if: always()

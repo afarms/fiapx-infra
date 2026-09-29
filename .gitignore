@@ -11,3 +11,4 @@
 .local/
 /evidence/
 crash.log
+__pycache__/
