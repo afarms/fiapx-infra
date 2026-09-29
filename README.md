@@ -18,7 +18,7 @@ O bucket de estado existente `fiap-fase-05`, no prefixo `fiapx-infra/tfstate/`, 
 
 ## Validar e executar
 
-Com Terraform 1.14.7, GNU Make e Python instalados, instalar as dependências de `scripts/database/requirements.txt` em um venv e executar na raiz:
+Com Terraform 1.14.7, GNU Make, Node.js e Python instalados, instalar as dependências de `scripts/database/requirements.txt` em um venv e executar na raiz:
 
 ```bash
 make verify

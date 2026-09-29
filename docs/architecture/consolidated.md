@@ -16,8 +16,8 @@ Vídeos: sete formatos da base, até 100 MB decimais e 300 segundos; referência
 | --- | --- |
 | EKS | Managed node group EC2 Linux Spot com dois nós desejados; API privada via SSM; um Deployment por serviço; worker com duas réplicas na prova de concorrência |
 | Rede | VPC em duas AZs; subnets públicas para entrada e privadas para workloads/RDS; saída via NAT inicialmente único, sem alegar alta disponibilidade |
-| Entrada | Próxima entrega: ALB para Identity/Video; HTTPS e eventual CloudFront conforme [plano de acesso público](../operations/public-api.md). Sem cache nas APIs, preservando Authorization e streaming |
-| DNS/TLS | Sem domínio próprio, conforme confirmado pelo responsável: avaliar CloudFront com endereço AWS e VPC origin; desenho técnico ainda pendente |
+| Entrada | CloudFront HTTPS e ALB privado para Identity/Video, conforme [acesso público](../operations/public-api.md). Implementação preparada; apply pendente. Sem cache nas APIs, preservando Authorization e streaming |
+| DNS/TLS | CloudFront com certificado/endereço AWS; origem ALB privada por VPC origin. HTTPS no acesso público, HTTP na rede privada, conforme decisão aceita |
 | Banco | Uma instância RDS PostgreSQL Single-AZ acadêmica; três bancos/usuários de domínio e usuário separado de manutenção; sem banco de avisos |
 | Objetos | Bucket privado de mídia definido em Terraform, separado do frontend e do estado; mídia sem versionamento e estado sem exigência de versionamento |
 | Filas | SQS Standard; cinco filas funcionais, cada uma com sua DLQ; outbox por destinatário, sem SNS adicional nesta proposta |

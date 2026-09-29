@@ -55,7 +55,7 @@ flowchart LR
 
 **Conexões internas omitidas para legibilidade:** vídeos e processamento consultam identidade conforme seus contratos. A obtenção segura do destinatário da Lambda ainda será definida. ALB encaminha rotas aos serviços HTTP, sem expor o worker ou criar uma API de notificações. O detalhamento das filas aparece abaixo; apenas trabalho e resultados estão provisionados no estado atual.
 
-**Limites de rede:** workloads e RDS ficam privados. O ALB poderá ser público com ACM/domínio ou privado via CloudFront VPC origin; decisão de entrada pendente. CloudFront, S3 e SQS não são Pods. O desenho não comprova TLS no trecho de origem nem recursos já provisionados.
+**Limites de rede:** workloads e RDS ficam privados. O ALB será privado via CloudFront VPC origin; HTTPS público e HTTP privado confirmados, implementação preparada e apply pendente. CloudFront, S3 e SQS não são Pods. O desenho não comprova TLS no trecho de origem nem recursos já provisionados.
 
 ### 2. Implantação e operação
 
@@ -108,7 +108,7 @@ flowchart LR
     style NETWORK fill:#F8FAFC,stroke:#CBD5E1,color:#0F172A
 ```
 
-O bucket de estado já existe e fica fora do ciclo de destruição da aplicação. Recursos criados por controllers Kubernetes, como o ALB, mantêm sua propriedade definida na infraestrutura, sem gerenciamento concorrente pelo Terraform.
+O bucket de estado já existe e fica fora do ciclo de destruição da aplicação. Terraform gerencia ALB/TGs e associação ao ASG; Services NodePort pertencem aos manifests dos serviços. Nenhum controller Kubernetes gerencia o mesmo ALB.
 
 As configurações entregues aos Pods não criam novos secrets no AWS Secrets Manager. Cada serviço recebe sua configuração, enquanto a credencial de manutenção fica separada. A referência inicial de NAT único e RDS Single-AZ não demonstra alta disponibilidade. Rotas, endpoints e dimensionamento serão detalhados na implantação.
 
