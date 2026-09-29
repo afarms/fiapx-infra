@@ -27,3 +27,5 @@ Validar os documentos preenchidos com IAM Access Analyzer antes de anexar. Depoi
 Referências: [autorização EKS](https://docs.aws.amazon.com/service-authorization/latest/reference/list_eks.html), [autorização EC2](https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html) e [permissões para tags no launch template do EKS](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html#launch-template-tagging).
 
 Instalação nesta conta: três políticas validadas no Access Analyzer sem findings e anexadas à role do pipeline; MaxSessionDuration confirmado em 7200. Políticas anteriores e confiança OIDC preservadas. Validação local make verify aprovada. Resultado remoto ainda depende da nova execução do PR.
+
+Validação remota concluída no run36502491037: apply3/0/0 e nenhuma mudança no drift. Policy compute instalada v3 (inclui SG padrão na pré-validação) e IAM v2 (GetRole das service-linked roles). Node group ACTIVE, dois nós Spot running com SG gerenciado do cluster e quatro add-ons ACTIVE. Access Analyzer sem findings nas revisões instaladas; consulta Kubernetes direta fica para o acesso SSM.

@@ -1,6 +1,6 @@
 # Runtime EKS privado
 
-Status: configuração implementada e validada localmente; cluster ainda não provisionado. Rede e ECR já provisionados. O acesso administrativo via SSM, RDS e secret permanecem nos próximos incrementos. As [permissões do pipeline](eks-pipeline-permissions.md) foram instaladas após a primeira falha de apply.
+Status: cluster e node group Spot provisionados; [workflow 36502491037](https://github.com/afarms/fiapx-infra/actions/runs/36502491037) concluiu apply e verificação sem drift. Dois nós EC2 running/Spot e quatro add-ons ACTIVE, sem problemas de saúde reportados pelas APIs AWS. Consulta kubectl Ready e administração privada permanecem para a etapa SSM. Rede e ECR já provisionados. O acesso administrativo via SSM, RDS e secret permanecem nos próximos incrementos. As [permissões do pipeline](eks-pipeline-permissions.md) foram instaladas após a primeira falha de apply.
 
 O cluster usa Kubernetes 1.35, endpoint somente privado e managed node group com capacidade desejada de dois nós Spot nas subnets privadas. Os tipos m6i.large, m6a.large e m5.large ampliam as opções de capacidade x86. Spot pode sofrer interrupção ou indisponibilidade; duas subnets não garantem um nó em cada zona. O reparo automático está habilitado.
 
