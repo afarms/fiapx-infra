@@ -18,7 +18,7 @@ Na cópia de instalação de compute, substituir também EKS_LAUNCH_TEMPLATE_ID,
 
 `eks:CreateCluster` exige Resource=* por limitação da API de autorização; a declaração exige região us-east-1, tags de projeto, endpoint privado e ausência de administração automática do criador. Operações posteriores usam ARNs do cluster fiapx. Leituras EC2/Logs e compatibilidade de add-ons que não suportam escopo por recurso também usam Resource=*, limitadas à região. A identidade do pipeline é confiável para provisionar; essas permissões não substituem revisão do plano.
 
-Pré-requisitos administrativos já conferidos nesta conta: AWSServiceRoleForAmazonEKS, AWSServiceRoleForAmazonEKSNodegroup e AWSServiceRoleForEC2Spot existem. Em outra conta, criar as service-linked roles antes da execução; o pipeline não recebe criação genérica de roles de serviço.
+Pré-requisitos administrativos já conferidos nesta conta: AWSServiceRoleForAmazonEKS, AWSServiceRoleForAmazonEKSNodegroup e AWSServiceRoleForEC2Spot existem. A política IAM permite GetRole somente nos três ARNs para que o EKS confirme sua existência. Em outra conta, criar as service-linked roles antes da execução; o pipeline não recebe criação genérica de roles de serviço.
 
 Configurar `MaxSessionDuration=7200` na role do pipeline antes de publicar o workflow com sessão OIDC de 7200 segundos e timeout de 110 minutos. Isso evita expiração durante criação sequencial de cluster, nós e add-ons. A confiança OIDC permanece inalterada.
 
