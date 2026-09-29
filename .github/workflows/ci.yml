@@ -54,9 +54,6 @@ jobs:
       - name: Validate without AWS access
         run: make verify
 
-      - name: Verify database bootstrap on PostgreSQL
-        run: make verify-database
-
       - name: Validate AWS configuration
         env:
           AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}

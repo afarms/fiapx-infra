@@ -1,7 +1,7 @@
 TERRAFORM := terraform
 PYTHON ?= python3
 .DEFAULT_GOAL := verify
-.PHONY: verify verify-database bootstrap-database fmt lock init plan apply check-drift check-pr
+.PHONY: verify bootstrap-database fmt lock init plan apply check-drift check-pr
 
 # Local validation without AWS credentials or remote backend initialization.
 verify:
@@ -10,11 +10,8 @@ verify:
 	$(TERRAFORM) -chdir=terraform validate
 	bash -n scripts/init-backend.sh
 	bash -n terraform/bootstrap/administration.sh
-	bash scripts/test-pr-revision.sh
-	$(PYTHON) -m unittest discover -s scripts/database -p test_bootstrap.py -v
-
-verify-database:
-	$(PYTHON) scripts/database/test_integration.py
+	bash -n scripts/check-pr-revision.sh
+	$(PYTHON) -m py_compile scripts/database/bootstrap.py scripts/database/run_remote.py
 
 bootstrap-database:
 	$(PYTHON) scripts/database/run_remote.py

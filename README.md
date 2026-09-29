@@ -23,7 +23,7 @@ Com Terraform 1.14.7, GNU Make e Python instalados, instalar as dependências de
 make verify
 ```
 
-Executa formatação, inicialização sem backend, validação, guard de revisão e teste de preservação do secret, sem credenciais AWS. Não há testes Terraform com provider mock. O primeiro uso baixa o provider fixado no lock file. `make verify-database` valida o bootstrap em PostgreSQL real com Docker; detalhes e parâmetro `PYTHON` no [runbook](docs/operations/private-database.md).
+Executa formatação, inicialização sem backend, validação Terraform e verificação de sintaxe Bash/Python, sem credenciais AWS. O primeiro uso baixa o provider fixado no lock file. Os scripts versionados executam o provisionamento e o bootstrap; não há suíte de testes auxiliares neste repositório. Detalhes e parâmetro `PYTHON` no [runbook](docs/operations/private-database.md).
 
 O workflow **Terraform** executa automaticamente nos PRs para `main`: validação → autenticação OIDC → init → plan salvo → apply → verificação final. O check obrigatório `terraform-validate` só passa se todas as etapas passarem. Deploy permitido apenas em PR próprio do proprietário, no mesmo repositório. Apply ocorre antes do merge; fechar o PR não reverte recursos já alterados.
 

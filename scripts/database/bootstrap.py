@@ -1,11 +1,29 @@
 """Idempotent database setup, executed on the private administration host."""
+import json
 import secrets
 
 import boto3
 import psycopg
 from psycopg import sql
 
-from runtime_secret import DATABASES, load
+DATABASES = ("fiapx_identity", "fiapx_video", "fiapx_processing")
+
+
+def load(client):
+    # The operator creates this secret; bootstrap only reads existing values.
+    metadata = client.describe_secret(SecretId="fiapx/runtime")
+    tags = {tag["Key"]: tag["Value"] for tag in metadata.get("Tags", [])}
+    if metadata.get("DeletedDate") or tags != {"Project": "fiapx", "ManagedBy": "terraform"}:
+        raise ValueError("Runtime secret ownership must be verified before use")
+    value = json.loads(client.get_secret_value(SecretId="fiapx/runtime")["SecretString"])
+    if value.get("version") != 1:
+        raise ValueError("Unsupported runtime secret schema")
+    for name in ("master", *DATABASES):
+        account = value["database"][name]
+        expected = "fiapx_admin" if name == "master" else name
+        if account["username"] != expected or not isinstance(account["password"], str) or not account["password"]:
+            raise ValueError("Invalid database credentials in runtime secret")
+    return value
 
 
 def scram(conn, username, password):

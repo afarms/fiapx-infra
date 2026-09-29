@@ -39,7 +39,7 @@ resource "aws_ssm_document" "database_bootstrap" {
           "dnf install -y python3 python3-pip >/dev/null",
           "install -d -m 700 /opt/fiapx-database",
           "python3 -m venv /opt/fiapx-database/venv"
-          ], [for filename in ["requirements.txt", "runtime_secret.py", "bootstrap.py"] :
+          ], [for filename in ["requirements.txt", "bootstrap.py"] :
           "printf '%s' '${filebase64("${path.module}/../scripts/database/${filename}")}' | base64 --decode > /opt/fiapx-database/${filename}"
           ], [
           "/opt/fiapx-database/venv/bin/pip install --disable-pip-version-check --quiet -r /opt/fiapx-database/requirements.txt",
