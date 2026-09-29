@@ -177,6 +177,7 @@
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/PRIVATE_SUBNET_A_ID",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/PRIVATE_SUBNET_B_ID",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/EKS_CLUSTER_SECURITY_GROUP_ID",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/VPC_DEFAULT_SECURITY_GROUP_ID",
         "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/EKS_LAUNCH_TEMPLATE_ID"
       ],
       "Condition": {
