@@ -1,0 +1,119 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DeliveryRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:GetRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:PutRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:DeleteRolePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-identity-service-github-actions",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-video-service-github-actions",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-processing-service-github-actions",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-video-service-pod",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-processing-service-pod"
+      ]
+    },
+    {
+      "Sid": "PassPodRoles",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-video-service-pod",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-processing-service-pod"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "pods.eks.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "PodIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreatePodIdentityAssociation",
+        "eks:DescribePodIdentityAssociation",
+        "eks:UpdatePodIdentityAssociation",
+        "eks:DeletePodIdentityAssociation",
+        "eks:ListPodIdentityAssociations",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:cluster/fiapx",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:podidentityassociation/fiapx/*"
+      ]
+    },
+    {
+      "Sid": "TunnelDocument",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:CreateDocument",
+        "ssm:DeleteDocument",
+        "ssm:DescribeDocument",
+        "ssm:DescribeDocumentPermission",
+        "ssm:GetDocument",
+        "ssm:UpdateDocument",
+        "ssm:UpdateDocumentDefaultVersion",
+        "ssm:ListTagsForResource",
+        "ssm:AddTagsToResource",
+        "ssm:RemoveTagsFromResource"
+      ],
+      "Resource": "arn:aws:ssm:us-east-1:ACCOUNT_ID:document/fiapx-eks-tunnel"
+    },
+    {
+      "Sid": "DeliveryEksAccess",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreateAccessEntry",
+        "eks:DescribeAccessEntry",
+        "eks:UpdateAccessEntry",
+        "eks:DeleteAccessEntry",
+        "eks:AssociateAccessPolicy",
+        "eks:DisassociateAccessPolicy",
+        "eks:ListAssociatedAccessPolicies",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:cluster/fiapx",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/role/ACCOUNT_ID/fiapx-identity-service-github-actions/*",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/role/ACCOUNT_ID/fiapx-video-service-github-actions/*",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/role/ACCOUNT_ID/fiapx-processing-service-github-actions/*"
+      ]
+    },
+    {
+      "Sid": "MetricsServerAddon",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreateAddon",
+        "eks:DescribeAddon",
+        "eks:UpdateAddon",
+        "eks:DeleteAddon",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:cluster/fiapx",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:addon/fiapx/metrics-server/*"
+      ]
+    }
+  ]
+}

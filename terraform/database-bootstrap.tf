@@ -44,7 +44,11 @@ resource "aws_ssm_document" "database_bootstrap" {
           ], [
           "/opt/fiapx-database/venv/bin/pip install --disable-pip-version-check --quiet -r /opt/fiapx-database/requirements.txt",
           "curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 https://truststore.pki.rds.amazonaws.com/us-east-1/us-east-1-bundle.pem -o /opt/fiapx-database/rds-ca.pem",
-          "/opt/fiapx-database/venv/bin/python /opt/fiapx-database/bootstrap.py"
+          "/opt/fiapx-database/venv/bin/python /opt/fiapx-database/bootstrap.py",
+          "export KUBECONFIG=$(mktemp)",
+          "trap 'rm -f -- \"$KUBECONFIG\"' EXIT",
+          "fiapx-kubeconfig >/dev/null",
+          "printf '%s' '${filebase64("${path.module}/../k8s/namespace.yaml")}' | base64 --decode | kubectl apply --server-side --field-manager=fiapx-infra -f -"
         ])
       }
     }]
