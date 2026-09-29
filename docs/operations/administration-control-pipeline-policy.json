@@ -1,0 +1,169 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateAdministrationIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:CreateInstanceProfile"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-administration",
+        "arn:aws:iam::ACCOUNT_ID:instance-profile/fiapx-administration"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureAdministrationRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:GetRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:ListInstanceProfilesForRole"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-administration"
+    },
+    {
+      "Sid": "AttachSsmCoreOnly",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-administration",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureAdministrationProfile",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetInstanceProfile",
+        "iam:AddRoleToInstanceProfile",
+        "iam:RemoveRoleFromInstanceProfile",
+        "iam:TagInstanceProfile",
+        "iam:UntagInstanceProfile"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:instance-profile/fiapx-administration"
+    },
+    {
+      "Sid": "PassAdministrationRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-administration",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "ec2.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "CreateAdministrationAccess",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreateAccessEntry"
+      ],
+      "Resource": "arn:aws:eks:us-east-1:ACCOUNT_ID:cluster/fiapx",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "eks:principalArn": "arn:aws:iam::ACCOUNT_ID:role/fiapx-administration",
+          "eks:accessEntryType": "STANDARD"
+        }
+      }
+    },
+    {
+      "Sid": "ReadAdministrationAccess",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeAccessEntry",
+        "eks:ListAssociatedAccessPolicies"
+      ],
+      "Resource": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/role/ACCOUNT_ID/fiapx-administration/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "GrantAdministrationAccess",
+      "Effect": "Allow",
+      "Action": [
+        "eks:AssociateAccessPolicy"
+      ],
+      "Resource": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/role/ACCOUNT_ID/fiapx-administration/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "eks:policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
+          "eks:accessScope": "cluster"
+        }
+      }
+    },
+    {
+      "Sid": "ManageAdministrationDocument",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:CreateDocument",
+        "ssm:DeleteDocument",
+        "ssm:DescribeDocument",
+        "ssm:DescribeDocumentPermission",
+        "ssm:GetDocument",
+        "ssm:UpdateDocument",
+        "ssm:UpdateDocumentDefaultVersion",
+        "ssm:ListTagsForResource",
+        "ssm:AddTagsToResource",
+        "ssm:RemoveTagsFromResource"
+      ],
+      "Resource": "arn:aws:ssm:us-east-1:ACCOUNT_ID:document/fiapx-administration-shell",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ManageAdministrationLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:ListTagsForResource",
+        "logs:TagResource",
+        "logs:UntagResource",
+        "logs:ListTagsLogGroup",
+        "logs:TagLogGroup",
+        "logs:UntagLogGroup"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-east-1:ACCOUNT_ID:log-group:/fiapx/administration/sessions",
+        "arn:aws:logs:us-east-1:ACCOUNT_ID:log-group:/fiapx/administration/sessions:*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    }
+  ]
+}

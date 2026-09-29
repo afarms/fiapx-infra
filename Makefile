@@ -8,6 +8,7 @@ verify:
 	$(TERRAFORM) -chdir=terraform init -backend=false -input=false
 	$(TERRAFORM) -chdir=terraform validate
 	bash -n scripts/init-backend.sh
+	bash -n terraform/bootstrap/administration.sh
 	bash scripts/test-pr-revision.sh
 
 check-pr:

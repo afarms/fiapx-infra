@@ -1,0 +1,251 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TerminateOwnedAdministration",
+      "Effect": "Allow",
+      "Action": "ec2:TerminateInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "CancelOwnedAdministrationRequest",
+      "Effect": "Allow",
+      "Action": "ec2:CancelSpotInstanceRequests",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:spot-instances-request/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "UseAdministrationTemplate",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedAdministrationRules",
+      "Effect": "Allow",
+      "Action": ["ec2:AuthorizeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress"],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "ReadAdministrationCompute",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceAttribute",
+        "ec2:DescribeInstanceCreditSpecifications",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeVolumes",
+        "ec2:DescribeVolumeAttribute",
+        "ec2:DescribeSpotInstanceRequests",
+        "ec2:DescribeIamInstanceProfileAssociations"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "LaunchAdministrationDependencies",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1::image/ami-0fef201115eefe936",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/PRIVATE_SUBNET_A_ID",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:spot-instances-request/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "UseAdministrationGroup",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "LaunchPrivateAdministrationSpot",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Name": "fiapx-administration",
+          "ec2:InstanceType": "t3.micro",
+          "ec2:MetadataHttpTokens": "required",
+          "ec2:InstanceMarketType": "spot"
+        },
+        "ArnEquals": {
+          "ec2:InstanceProfile": "arn:aws:iam::ACCOUNT_ID:instance-profile/fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "TagAdministrationLaunch",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:spot-instances-request/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "ec2:CreateAction": "RunInstances"
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureAdministrationInstance",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:ModifyInstanceAttribute",
+        "ec2:ModifyInstanceCreditSpecification",
+        "ec2:StartInstances",
+        "ec2:StopInstances"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "MaintainAdministrationTags",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform"
+        },
+        "ForAllValues:StringNotEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "ManagedBy"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureAdministrationEgress",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupEgress"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "ConfigurePrivateApiIngress",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-eks-private-api"
+        }
+      }
+    },
+    {
+      "Sid": "TagAdministrationRules",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group-rule/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    }
+  ]
+}
