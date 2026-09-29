@@ -53,7 +53,7 @@ Rotação de senha exige coordenar banco/Secrets Manager e novo rollout dos serv
 
 HPA autoscaling/v2 usa CPU70% dos requests. APIs: mínimo1/máximo2; worker: mínimo2/máximo3. Metrics Server é add-on EKS fixado em versão compatível. Deployment omite replicas para não sobrescrever decisões do HPA. Verificar ScalingActive após os Pods fornecerem métricas; dry-run não comprova autoscaling.
 
-Requests/limits, probes, mounts e diretórios emptyDir estão em deployment.yaml. HPA aumenta Pods, não nós: os dois nós Spot continuam fixos e a capacidade disponível limita o agendamento. Worker consome SQS; CPU é a métrica inicial simples, sem escalonamento por tamanho de fila. Services são ClusterIP, inclusive o endpoint de saúde interno do worker; nenhuma exposição pública adicionada.
+Requests/limits, probes, mounts e diretórios emptyDir estão em deployment.yaml. HPA aumenta Pods, não nós: os dois nós Spot continuam fixos e a capacidade disponível limita o agendamento. Worker consome SQS; CPU é a métrica inicial simples, sem escalonamento por tamanho de fila. Processing permanece ClusterIP; Identity/Video usam NodePort privado para o ALB, conforme [entrada pública](public-api.md).
 
 ## Falhas e retorno
 

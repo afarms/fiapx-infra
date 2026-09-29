@@ -11,6 +11,7 @@ verify:
 	bash -n scripts/init-backend.sh
 	bash -n terraform/bootstrap/administration.sh
 	bash -n scripts/check-pr-revision.sh
+	node --check terraform/cloudfront/api-request.js
 	$(PYTHON) -m py_compile scripts/database/bootstrap.py scripts/database/run_remote.py
 
 bootstrap-database:
