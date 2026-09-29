@@ -1,6 +1,6 @@
 # Administração privada por SSM
 
-Status: configuração local, ainda sem provisionamento ou sessão real validada. O EKS já existe; a máquina SSM, as permissões adicionais e o acesso ao futuro RDS pertencem a este fluxo. O banco ainda não existe.
+Status: máquina administrativa provisionada, SSM Online e sessão real validada com log no CloudWatch. Bootstrap concluído; dois nós Kubernetes Ready e oito pods kube-system Running. A substituição da máquina e o cancelamento da requisição Spot anterior foram executados pelo pipeline. O banco ainda não existe; o túnel DBeaver depende da etapa RDS.
 
 ## Máquina e acesso
 
@@ -44,9 +44,9 @@ kubectl get nodes
 kubectl get pods -n kube-system
 ```
 
-Se o marcador não existir, revisar /var/log/cloud-init-output.log e corrigir a causa; não considerar bootstrap concluído apenas porque o SSM está Online. O helper usa credenciais temporárias da role EC2 e grava kubeconfig para o usuário da sessão. Não copia chaves AWS. Confirmar dois nós Ready, pods de sistema saudáveis e acesso pela API privada; esses itens ainda não foram verificados nesta etapa local.
+Se o marcador não existir, revisar /var/log/cloud-init-output.log e corrigir a causa; não considerar bootstrap concluído apenas porque o SSM está Online. O helper usa credenciais temporárias da role EC2 e grava kubeconfig para o usuário da sessão. Não copia chaves AWS. Confirmados dois nós Ready, pods de sistema saudáveis e acesso pela API privada na primeira validação remota. Repetir a checagem após substituições.
 
-O documento fiapx-administration-shell envia a sessão interativa para /fiapx/administration/sessions, retenção sete dias, timeout ocioso de 20 minutos e máximo de 60. Não altera o documento global de preferências SSM da conta. Confirmar o fluxo de logs após a primeira sessão. Comandos/conteúdo sensível digitados no shell podem aparecer no log; manutenção do banco deve usar credenciais fora de parâmetros/logs de comandos.
+O documento fiapx-administration-shell envia a sessão interativa para /fiapx/administration/sessions, retenção sete dias, timeout ocioso de 20 minutos e máximo de 60. Não altera o documento global de preferências SSM da conta. Fluxo de logs confirmado na primeira sessão. Comandos/conteúdo sensível digitados no shell podem aparecer no log; manutenção do banco deve usar credenciais fora de parâmetros/logs de comandos.
 
 ## Túnel DBeaver após o RDS
 
@@ -71,3 +71,5 @@ O provider cancela primeiro a requisição Spot persistente e depois termina a i
 Interromper a máquina não remove seu volume ou os demais recursos do ambiente. No encerramento definitivo, planejar a remoção da requisição Spot persistente junto da instância, acesso EKS, profile/role, documento e SG. Não há destroy automático neste incremento; não armazenar dados que precisem sobreviver nessa máquina.
 
 Referências: [sessões e port forwarding](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html), [documento de preferências](https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-create-preferences-cli.html), [SSM Agent em AMIs](https://docs.aws.amazon.com/systems-manager/latest/userguide/ami-preinstalled-agent.html).
+
+As tags do volume são gerenciadas por volume_tags, incluindo Name/Project/ManagedBy explicitamente. Não combinar esse campo com root_block_device.tags: a transição entre os dois mecanismos pode tentar remover tags de propriedade; a política bloqueia essa remoção. Plano administrativo final sem diferenças após a configuração convergir.
