@@ -1,5 +1,11 @@
 locals {
   delivery = toset(["fiapx-identity-service", "fiapx-video-service", "fiapx-processing-service"])
+  # GitHub immutable OIDC subjects include owner and repository IDs.
+  delivery_repository_ids = {
+    fiapx-identity-service   = "1390898475"
+    fiapx-video-service      = "1382545566"
+    fiapx-processing-service = "1392529435"
+  }
 }
 
 resource "aws_iam_role" "application" {
@@ -52,7 +58,7 @@ resource "aws_iam_role" "service_delivery" {
       Principal = { Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com" }
       Condition = { StringEquals = {
         "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-        "token.actions.githubusercontent.com:sub" = "repo:afarms/${each.key}:ref:refs/heads/main"
+        "token.actions.githubusercontent.com:sub" = "repo:afarms@37558207/${each.key}@${local.delivery_repository_ids[each.key]}:ref:refs/heads/main"
       } }
     }]
   })
