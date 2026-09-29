@@ -76,7 +76,7 @@ resource "aws_instance" "administration" {
   user_data                   = file("${path.module}/bootstrap/administration.sh")
   user_data_replace_on_change = true
   tags                        = { Name = "fiapx-administration" }
-  volume_tags                 = { Name = "fiapx-administration" }
+  volume_tags                 = { Name = "fiapx-administration", Project = "fiapx", ManagedBy = "terraform" }
 
   launch_template {
     id      = aws_launch_template.administration.id
