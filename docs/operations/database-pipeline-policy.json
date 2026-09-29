@@ -1,0 +1,63 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageDatabase",
+      "Effect": "Allow",
+      "Action": ["rds:CreateDBInstance", "rds:ModifyDBInstance", "rds:DescribeDBInstances", "rds:AddTagsToResource", "rds:RemoveTagsFromResource", "rds:ListTagsForResource"],
+      "Resource": "arn:aws:rds:us-east-1:ACCOUNT_ID:db:fiapx-postgres"
+    },
+    {
+      "Sid": "ManageDatabaseGroups",
+      "Effect": "Allow",
+      "Action": ["rds:CreateDBSubnetGroup", "rds:ModifyDBSubnetGroup", "rds:DeleteDBSubnetGroup", "rds:DescribeDBSubnetGroups", "rds:CreateDBParameterGroup", "rds:ModifyDBParameterGroup", "rds:ResetDBParameterGroup", "rds:DeleteDBParameterGroup", "rds:DescribeDBParameterGroups", "rds:DescribeDBParameters", "rds:AddTagsToResource", "rds:RemoveTagsFromResource", "rds:ListTagsForResource"],
+      "Resource": ["arn:aws:rds:us-east-1:ACCOUNT_ID:subgrp:fiapx-postgres", "arn:aws:rds:us-east-1:ACCOUNT_ID:pg:fiapx-postgres17"]
+    },
+    {
+      "Sid": "DatabaseCreationDependencies",
+      "Effect": "Allow",
+      "Action": "rds:CreateDBInstance",
+      "Resource": ["arn:aws:rds:us-east-1:ACCOUNT_ID:subgrp:fiapx-postgres", "arn:aws:rds:us-east-1:ACCOUNT_ID:pg:fiapx-postgres17", "arn:aws:rds:us-east-1:ACCOUNT_ID:og:default:postgres-17"]
+    },
+    {
+      "Sid": "CreateRdsServiceRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS",
+      "Condition": {"StringEquals": {"iam:AWSServiceName": "rds.amazonaws.com"}}
+    },
+    {
+      "Sid": "ReadAndMaintainSecretMetadata",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue", "secretsmanager:GetResourcePolicy", "secretsmanager:UpdateSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource"],
+      "Resource": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:fiapx/runtime-??????"
+    },
+    {
+      "Sid": "ManageDatabaseBootstrapDocument",
+      "Effect": "Allow",
+      "Action": ["ssm:CreateDocument", "ssm:DeleteDocument", "ssm:DescribeDocument", "ssm:DescribeDocumentPermission", "ssm:GetDocument", "ssm:UpdateDocument", "ssm:UpdateDocumentDefaultVersion", "ssm:ListTagsForResource", "ssm:AddTagsToResource", "ssm:RemoveTagsFromResource", "ssm:SendCommand"],
+      "Resource": "arn:aws:ssm:us-east-1:ACCOUNT_ID:document/fiapx-database-bootstrap"
+    },
+    {
+      "Sid": "RunBootstrapOnAdministrationOnly",
+      "Effect": "Allow",
+      "Action": "ssm:SendCommand",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {"StringEquals": {"ssm:resourceTag/Project": "fiapx", "ssm:resourceTag/ManagedBy": "terraform", "ssm:resourceTag/Name": "fiapx-administration"}}
+    },
+    {
+      "Sid": "ObserveBootstrap",
+      "Effect": "Allow",
+      "Action": "ssm:GetCommandInvocation",
+      "Resource": "*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "us-east-1"}}
+    },
+    {
+      "Sid": "ConfigureDatabaseSecurityGroup",
+      "Effect": "Allow",
+      "Action": ["ec2:AuthorizeSecurityGroupIngress", "ec2:RevokeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress", "ec2:RevokeSecurityGroupEgress", "ec2:DeleteSecurityGroup"],
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/*",
+      "Condition": {"StringEquals": {"ec2:ResourceTag/Project": "fiapx", "ec2:ResourceTag/ManagedBy": "terraform", "ec2:ResourceTag/Name": "fiapx-postgres"}}
+    }
+  ]
+}

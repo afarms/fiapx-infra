@@ -9,7 +9,7 @@ Repositório de Terraform e documentação da integração entre os serviços FI
 - Processamento: worker/FFmpeg, concorrência e recuperação implementados. Validação integrada na cloud pendente.
 - Infraestrutura: OIDC, backend S3/lock, bucket privado de mídia e workflow único de validação, plan e apply automático no PR verificados na AWS.
 - Filas de processamento/resultados, DLQs, roles locais e permissões de resultados/limpeza provisionadas pelo pipeline. Isso não comprova execução integrada das aplicações na AWS. Ver [guia de resultados](docs/operations/processing-results.md).
-- EKS, RDS, demais filas e frontend fazem parte da arquitetura planejada e ainda não foram provisionados por este projeto.
+- EKS privado com dois nós Spot e administração SSM provisionados e validados. RDS privado, secret único e bootstrap dos três bancos implementados localmente; provisionamento pendente. Ver [banco privado](docs/operations/private-database.md). Demais filas e frontend permanecem pendentes.
 - Rede em duas AZs, NAT e três ECR privados provisionados com apply e drift verificados; ver [rede/ECR](docs/operations/cloud-network-registry.md).
 - Prioridade: rede/ECR → EKS/RDS/configuração → deploy e fluxo principal → validação cloud. Notificação mínima de erro por e-mail fica ao final, via SQS/Lambda/SES, conforme [ADR-0002](docs/architecture/adr/0002-email-notifications-cloud-first.md).
 
@@ -17,13 +17,13 @@ O bucket de estado existente `fiap-fase-05`, no prefixo `fiapx-infra/tfstate/`, 
 
 ## Validar e executar
 
-Com Terraform 1.14.7 e GNU Make instalados, executar na raiz:
+Com Terraform 1.14.7, GNU Make e Python instalados, instalar as dependências de `scripts/database/requirements.txt` em um venv e executar na raiz:
 
 ```bash
 make verify
 ```
 
-Executa formatação em modo de verificação, inicialização sem backend, validação e testes com provider mock, sem credenciais AWS. O primeiro uso baixa o provider AWS fixado no lock file.
+Executa formatação, inicialização sem backend, validação, guard de revisão e teste de preservação do secret, sem credenciais AWS. Não há testes Terraform com provider mock. O primeiro uso baixa o provider fixado no lock file. `make verify-database` valida o bootstrap em PostgreSQL real com Docker; detalhes e parâmetro `PYTHON` no [runbook](docs/operations/private-database.md).
 
 O workflow **Terraform** executa automaticamente nos PRs para `main`: validação → autenticação OIDC → init → plan salvo → apply → verificação final. O check obrigatório `terraform-validate` só passa se todas as etapas passarem. Deploy permitido apenas em PR próprio do proprietário, no mesmo repositório. Apply ocorre antes do merge; fechar o PR não reverte recursos já alterados.
 
@@ -34,6 +34,7 @@ Configure também `MEDIA_BUCKET_NAME`, a política IAM adicional e a confiança 
 ## Documentação
 
 - [Estrutura Terraform](terraform/README.md).
+- [RDS privado, bootstrap e DBeaver](docs/operations/private-database.md).
 - [Rede/ECR e permissões de provisionamento](docs/operations/cloud-network-registry.md).
 
 - [Arquitetura integrada](docs/architecture/consolidated.md).
