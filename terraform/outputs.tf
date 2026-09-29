@@ -20,6 +20,19 @@ output "media_bucket_name" {
   value       = aws_s3_bucket.media.id
 }
 
+output "eks_runtime" {
+  description = "Private cluster connection metadata and node SG for later SSM/RDS configuration; contains no credentials."
+  value = {
+    cluster_name                     = aws_eks_cluster.application.name
+    endpoint                         = aws_eks_cluster.application.endpoint
+    certificate_authority            = aws_eks_cluster.application.certificate_authority[0].data
+    cluster_security_group_id        = aws_eks_cluster.application.vpc_config[0].cluster_security_group_id
+    administration_security_group_id = aws_security_group.eks_api.id
+    node_group_name                  = aws_eks_node_group.application.node_group_name
+  }
+  sensitive = true
+}
+
 output "processing_dlq_url" {
   description = "Processing work dead-letter queue URL."
   value       = aws_sqs_queue.processing_dlq.url

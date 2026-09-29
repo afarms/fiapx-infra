@@ -15,7 +15,7 @@ jobs:
   terraform-validate:
     name: terraform-validate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 110
     permissions:
       contents: read
       pull-requests: read
@@ -76,7 +76,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           allowed-account-ids: ${{ env.EXPECTED_ACCOUNT }}
           role-session-name: fiapx-pr-${{ github.run_id }}
-          role-duration-seconds: 1800
+          role-duration-seconds: 7200
           mask-aws-account-id: true
           unset-current-credentials: true
           retry-max-attempts: 2

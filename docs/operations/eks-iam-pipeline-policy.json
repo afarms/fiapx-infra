@@ -1,0 +1,147 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadExistingServiceLinkedRoles",
+      "Effect": "Allow",
+      "Action": "iam:GetRole",
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS",
+        "arn:aws:iam::ACCOUNT_ID:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
+        "arn:aws:iam::ACCOUNT_ID:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot"
+      ]
+    },
+    {
+      "Sid": "CreateRuntimeRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cluster",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-nodes",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cni"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "ReadAndConfigureRuntimeRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:ListRolePolicies",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cluster",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-nodes",
+        "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cni"
+      ]
+    },
+    {
+      "Sid": "AttachclusterPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cluster",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "AttachnodesPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-nodes",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+            "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "AttachcniPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cni",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PassClusterRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cluster",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "eks.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "PassNodeRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-nodes",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "eks.amazonaws.com",
+            "ec2.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PassCniRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/fiapx-eks-cni",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "pods.eks.amazonaws.com",
+            "eks.amazonaws.com"
+          ]
+        }
+      }
+    }
+  ]
+}

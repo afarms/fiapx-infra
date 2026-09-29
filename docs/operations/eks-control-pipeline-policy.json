@@ -1,0 +1,122 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreatePrivateTaggedCluster",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreateCluster"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        },
+        "Bool": {
+          "eks:endpointPrivateAccess": "true",
+          "eks:endpointPublicAccess": "false",
+          "eks:bootstrapClusterCreatorAdminPermissions": "false"
+        }
+      }
+    },
+    {
+      "Sid": "ManageRuntime",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeCluster",
+        "eks:UpdateClusterConfig",
+        "eks:UpdateClusterVersion",
+        "eks:DescribeUpdate",
+        "eks:ListUpdates",
+        "eks:CreateNodegroup",
+        "eks:DescribeNodegroup",
+        "eks:UpdateNodegroupConfig",
+        "eks:UpdateNodegroupVersion",
+        "eks:ListNodegroups",
+        "eks:CreateAddon",
+        "eks:DescribeAddon",
+        "eks:UpdateAddon",
+        "eks:ListAddons",
+        "eks:CreatePodIdentityAssociation",
+        "eks:DescribePodIdentityAssociation",
+        "eks:UpdatePodIdentityAssociation",
+        "eks:ListPodIdentityAssociations",
+        "eks:ListTagsForResource",
+        "eks:TagResource",
+        "eks:UntagResource"
+      ],
+      "Resource": [
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:cluster/fiapx",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:nodegroup/fiapx/fiapx-spot/*",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:addon/fiapx/*",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:podidentityassociation/fiapx/*",
+        "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ReadAddonCompatibility",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeAddonVersions",
+        "eks:DescribeAddonConfiguration"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "CreateHumanAccess",
+      "Effect": "Allow",
+      "Action": [
+        "eks:CreateAccessEntry"
+      ],
+      "Resource": "arn:aws:eks:us-east-1:ACCOUNT_ID:cluster/fiapx",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "eks:principalArn": "arn:aws:iam::ACCOUNT_ID:user/rafael-admin",
+          "eks:accessEntryType": "STANDARD"
+        }
+      }
+    },
+    {
+      "Sid": "ReadHumanAccess",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeAccessEntry",
+        "eks:ListAssociatedAccessPolicies"
+      ],
+      "Resource": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/user/ACCOUNT_ID/rafael-admin/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "GrantHumanAdministration",
+      "Effect": "Allow",
+      "Action": [
+        "eks:AssociateAccessPolicy"
+      ],
+      "Resource": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/fiapx/user/ACCOUNT_ID/rafael-admin/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "eks:policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
+          "eks:accessScope": "cluster"
+        }
+      }
+    }
+  ]
+}
