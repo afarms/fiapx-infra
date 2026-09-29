@@ -37,6 +37,8 @@ O output application_delivery informa os valores públicos. Configurar em cada r
 
 A região é us-east-1; cluster fiapx; segredo agregado fiapx/runtime. Banco lógico, flags, pools/defaults e endereços internos estão nos manifests. Se a instância Spot for substituída, atualizar ADMIN_INSTANCE_ID.
 
+A trust OIDC usa o subject imutável do GitHub: `repo:afarms@37558207/REPOSITORIO@REPOSITORY_ID:ref:refs/heads/main`. Os IDs públicos são fixados em Terraform para cada serviço; o formato antigo sem IDs não corresponde aos tokens destes repositórios e causa AccessDenied em AssumeRoleWithWebIdentity. Manter audience sts.amazonaws.com, igualdade exata e branch main, sem curinga. Ver [subjects imutáveis](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims).
+
 ## Configurações e segredos
 
 ConfigMap contém dados não secretos e CA pública do RDS. A Action baixa o bundle regional AWS, insere em binaryData e monta /etc/fiapx/ca/rds-ca.pem. DB_URL usa sslmode=verify-full e sslrootcert nesse caminho, validando certificado e hostname do RDS.
