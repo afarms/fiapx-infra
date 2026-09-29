@@ -11,6 +11,7 @@ Este diretório é o módulo raiz do ambiente acadêmico FIAP X, executado pelo 
 | outputs.tf | Saídas descritas; identificadores de conta sensíveis onde já previsto |
 | network.tf / registry.tf | Rede da aplicação e registros ECR |
 | eks.tf / eks-iam.tf | Cluster privado, nós Spot, add-ons e permissões |
+| administration.tf / administration-iam.tf / bootstrap/ | Host privado SSM, acesso EKS, sessão com logs e bootstrap; provisionamento pendente |
 | media.tf | Bucket privado de mídia e proteções |
 | processing.tf / video-events.tf | Filas e DLQs por fluxo |
 | video-local.tf / processing-local.tf | Roles temporárias de desenvolvimento; não são as futuras identidades dos Pods |

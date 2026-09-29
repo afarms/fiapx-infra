@@ -1,3 +1,13 @@
+output "administration" {
+  description = "Private SSM host and shell document; database tunnel becomes usable after RDS provisioning."
+  value = {
+    instance_id       = aws_instance.administration.id
+    security_group_id = aws_security_group.administration.id
+    shell_document    = aws_ssm_document.administration_shell.name
+    session_log_group = aws_cloudwatch_log_group.administration.name
+  }
+}
+
 output "application_network" {
   description = "Network identifiers grouped by availability zone for future EKS/RDS deployment."
   value = {
