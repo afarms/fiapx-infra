@@ -9,7 +9,8 @@ Repositório de Terraform e documentação da integração entre os serviços FI
 - Processamento: worker/FFmpeg, concorrência e recuperação implementados. Validação integrada na cloud pendente.
 - Infraestrutura: OIDC, backend S3/lock, bucket privado de mídia e workflow único de validação, plan e apply automático no PR verificados na AWS.
 - Filas de processamento/resultados, DLQs, roles locais e permissões de resultados/limpeza provisionadas pelo pipeline. Isso não comprova execução integrada das aplicações na AWS. Ver [guia de resultados](docs/operations/processing-results.md).
-- EKS privado com dois nós Spot e administração SSM provisionados e validados. RDS privado, secret único e bootstrap dos três bancos implementados localmente; provisionamento pendente. Ver [banco privado](docs/operations/private-database.md). Demais filas e frontend permanecem pendentes.
+- EKS privado com dois nós Spot, administração SSM e RDS privado provisionados e validados. Secret único e bootstrap dos três bancos concluídos; TLS EKS → RDS e conexão DBeaver verificados. Ver [banco privado](docs/operations/private-database.md).
+- CI/CD dos serviços preparado com manifests k8s/ e kubectl executado na GitHub Action, publicação por SHA e deploy por digest após merge na main. SSM fornece somente túnel até a API privada. Ativação depende do apply de IAM/acesso/Metrics Server e configuração dos repositórios; ver [deploy das aplicações](docs/operations/application-delivery.md). Rollout real, demais filas e frontend permanecem pendentes.
 - Rede em duas AZs, NAT e três ECR privados provisionados com apply e drift verificados; ver [rede/ECR](docs/operations/cloud-network-registry.md).
 - Prioridade: rede/ECR → EKS/RDS/configuração → deploy e fluxo principal → validação cloud. Notificação mínima de erro por e-mail fica ao final, via SQS/Lambda/SES, conforme [ADR-0002](docs/architecture/adr/0002-email-notifications-cloud-first.md).
 

@@ -1,6 +1,6 @@
 # PostgreSQL privado e bootstrap
 
-Status: implementação validada localmente, secret criado pelo operador e política do pipeline instalada. Plano revisado: um import, nove criações, uma atualização de metadados do secret e nenhuma destruição. RDS e bootstrap remoto aguardam o apply do pipeline. Os testes locais não comprovam TLS, regras de rede ou permissões efetivas durante a criação na AWS.
+Status: RDS provisionado e bootstrap remoto concluído. Acesso administrativo pelo DBeaver via SSM confirmado; conexão de um Pod EKS com validação do certificado e TLS 1.3 verificada. O acesso direto da estação ao endpoint privado expirou, como esperado. As aplicações ainda aguardam deploy.
 
 ## Recursos e credenciais
 
@@ -51,19 +51,19 @@ O lock PostgreSQL serializa bootstraps. Não há DROP de banco, reset de dados o
 
 A checagem de memberships cobre os dois sentidos: a role de aplicação não pode participar de outra role, e somente fiapx_admin pode ser membro dela. Grants para outros logins ou roles de grupo impedem o sucesso do bootstrap, inclusive quando o acesso seria obtido por SET ROLE. O script não revoga automaticamente concessões inesperadas; o operador deve revisar a origem delas.
 
-Após provisionar, validar também acesso TLS a partir de um Pod na origem autorizada e bloqueio de uma origem sem SG permitido. Conferir private/encrypted, backups, ausência de valores no plano/estado e drift final. Essas evidências ainda estão pendentes.
+Na validação remota, os dois nós estavam Ready e os oito Pods de sistema Running. Um Pod temporário confirmou TLS 1.3 até o RDS; a conexão direta da estação expirou. Esse último resultado comprova indisponibilidade pela estação, mas não substitui um ensaio a partir de outra origem dentro da VPC sem o SG permitido. Em alterações de rede, repetir as verificações de acesso autorizado e bloqueio; conferir também private/encrypted, backups e drift.
 
 ## DBeaver por túnel SSM
 
-Com AWS CLI e Session Manager plugin, obter o endpoint em `terraform -chdir=terraform output -json database` e a instância em `output -json administration`. Abrir no PowerShell, substituindo os identificadores:
+Com AWS CLI e Session Manager plugin no PATH, obter o endpoint em `terraform -chdir=terraform output -json database` e a instância em `output -json administration`. No Git Bash, substituir os identificadores e manter o terminal aberto:
 
-```powershell
-aws ssm start-session --profile rafael-admin --region us-east-1 --target INSTANCE_ID --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters 'host=["RDS_ENDPOINT"],portNumber=["5432"],localPortNumber=["15432"]'
+```bash
+aws ssm start-session --profile rafael-admin --region us-east-1 --target INSTANCE_ID --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters 'host=RDS_ENDPOINT,portNumber=5432,localPortNumber=15432'
 ```
 
-Para preservar `sslmode=verify-full`, adicionar temporariamente no arquivo hosts local o mapeamento `127.0.0.1 RDS_ENDPOINT`. No DBeaver usar **RDS_ENDPOINT**, porta **15432**, banco escolhido, usuário **fiapx_admin** e senha obtida privadamente do Secrets Manager. Na configuração SSL usar `verify-full` e o certificado raiz [us-east-1-bundle.pem](https://truststore.pki.rds.amazonaws.com/us-east-1/us-east-1-bundle.pem). O nome do certificado continua correspondendo ao endpoint; o host remoto é resolvido pela máquina SSM.
+No DBeaver Community usar **localhost**, porta **15432**, banco **postgres**, usuário **fiapx_admin** e a senha definida pelo operador. Não habilitar SSH ou proxy. Baixar o certificado raiz [us-east-1-bundle.pem](https://truststore.pki.rds.amazonaws.com/us-east-1/us-east-1-bundle.pem) e, na aba SSL, selecionar `verify-ca` e informar o caminho completo do arquivo no campo certificado raiz. Esse modo valida a cadeia do certificado; não verifica o hostname, pois a conexão local usa localhost. O destino remoto é definido no túnel SSM autenticado. Não é necessário editar o arquivo hosts. Para listar os três bancos, habilitar a opção de mostrar todos os bancos e atualizar a conexão; `rdsadmin` é interno da AWS.
 
-Encerrar o túnel e remover o mapeamento hosts após o uso. SSM port forwarding não registra o conteúdo SQL. Quem pode abrir sessão/comando na máquina pode acessar as credenciais administrativas; restringir esse acesso a operadores confiáveis. Interrupção Spot encerra sessões/túneis, mas não recria o RDS.
+Encerrar o túnel após o uso. SSM port forwarding não registra o conteúdo SQL. Quem pode abrir sessão/comando na máquina pode acessar as credenciais administrativas; restringir esse acesso a operadores confiáveis. Interrupção Spot encerra sessões/túneis, mas não recria o RDS.
 
 ## Encerramento do ambiente
 
