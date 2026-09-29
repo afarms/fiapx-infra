@@ -2,7 +2,7 @@
 
 Fonte: [enunciado original](../reference/enunciado.pdf), transcrição em [enunciado.md](../reference/enunciado.md).
 Seção indicada na tabela; IDs abaixo são nossos, não IDs fornecidos pela FIAP.
-Estado: entrega parcial. Identidade, upload, processamento, consultas, download e limpeza assíncrona implementados e integrados. Validação integrada na cloud, notificações, exclusão distribuída e deploy das aplicações permanecem pendentes.
+Estado: entrega parcial. Identidade, upload, processamento, consultas, download e limpeza assíncrona implementados e integrados. Os três serviços foram implantados no EKS por CI/CD. Acesso público HTTPS, validação integrada na cloud, notificações, interface e exclusão distribuída permanecem pendentes.
 
 | ID | Fonte | Necessidade | Área responsável | Evidência esperada |
 | --- | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ Java, Spring Boot, Mockito, Swagger e Liquibase são escolhas de implementação
 
 ## Evidência de implementação
 
-RF-01, RF-04 e RF-05 possuem implementação nos serviços; RF-02/RF-03 possuem mecanismos de concorrência e recuperação, ainda sujeitos aos ensaios integrados na cloud. RT-01 e EN-02 possuem migrations Liquibase e persistência verificadas localmente. RT-04 possui testes unitários e de integração local; esses testes não comprovam o ambiente AWS completo. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos, processamento e infraestrutura. RT-05 tem CI executada e provisionamento Terraform, mas deploy das aplicações pendente. Mídia, filas de trabalho/resultados, respectivas DLQs e permissões locais foram provisionadas pelo pipeline. RF-06 não está implementado. Relatórios são artefatos da CI; ver também o [runbook de validação de download](https://github.com/afarms/fiapx-video-service/blob/main/docs/download-validation.md).
+RF-01, RF-04 e RF-05 possuem implementação nos serviços; RF-02/RF-03 possuem mecanismos de concorrência e recuperação, ainda sujeitos aos ensaios integrados na cloud. RT-01 e EN-02 possuem migrations Liquibase e persistência verificadas localmente. RT-04 possui testes unitários e de integração local; esses testes não comprovam o ambiente AWS completo. RT-03 e EN-03 possuem repositórios publicados para identidade, vídeos, processamento e infraestrutura. RT-05 possui CI, provisionamento Terraform e deploy real dos três serviços no EKS; os workflows concluíram publicação, túnel e rollout. Isso não comprova RF-01–03 ponta a ponta. Mídia, filas de trabalho/resultados, respectivas DLQs e permissões locais foram provisionadas pelo pipeline. RF-06 não está implementado. Relatórios são artefatos da CI; ver também o [runbook de validação de download](https://github.com/afarms/fiapx-video-service/blob/main/docs/download-validation.md).
 
 Cada requisito deve ser validado com cenários verificáveis. Atualizar esta tabela com links a testes e evidências reais conforme entrega.
 Não marcar um requisito como atendido só por existir um arquivo de documentação.

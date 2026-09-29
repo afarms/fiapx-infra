@@ -17,7 +17,7 @@ Outputs: application_network fornece VPC e subnets por AZ; container_registries 
 
 Executar make verify: formatação, validação Terraform e verificação de sintaxe dos scripts. Se o diretório Terraform local já estiver associado ao backend remoto, usar TF_DATA_DIR apontando para um diretório local exclusivo de validação. A validação estática não comprova disponibilidade de AZ, quotas ou permissões IAM.
 
-Antes do provisionamento: instalar políticas EC2/ECR abaixo, conferir AZs/quotas e plano sem destruição ou substituição de mídia/filas/roles existentes. O CIDR não é conectado a outras redes nesta etapa; qualquer futura conexão requer conferir sobreposição. EKS, RDS, ALB/HTTPS, secret, Pod Identity, imagens e deploy ficam nos incrementos seguintes.
+Antes do provisionamento: instalar políticas EC2/ECR abaixo, conferir AZs/quotas e plano sem destruição ou substituição de mídia/filas/roles existentes. O CIDR não é conectado a outras redes nesta etapa; qualquer futura conexão requer conferir sobreposição. EKS, RDS, secret, Pod Identity, imagens e deploy foram entregues posteriormente. ALB/HTTPS permanece a próxima capacidade de entrada pública.
 
 ## Permissões do pipeline
 
