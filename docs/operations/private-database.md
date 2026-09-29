@@ -49,6 +49,8 @@ Depois do apply, `make bootstrap-database` lê do estado apenas instância/nome/
 
 O lock PostgreSQL serializa bootstraps. Não há DROP de banco, reset de dados ou ALTER PASSWORD em reexecuções. Roles elevadas, memberships inesperadas e proprietário diferente fazem o script falhar. Se um operador alterar a senha fora do fluxo, corrigir a divergência explicitamente; não excluir o secret para regenerá-lo. Uma rotação futura exige procedimento coordenado, atualização explícita de `password_wo_version` para o mestre e das senhas dos usuários, antes do rollout das aplicações.
 
+A checagem de memberships cobre os dois sentidos: a role de aplicação não pode participar de outra role, e somente fiapx_admin pode ser membro dela. Grants para outros logins ou roles de grupo impedem o sucesso do bootstrap, inclusive quando o acesso seria obtido por SET ROLE. O script não revoga automaticamente concessões inesperadas; o operador deve revisar a origem delas.
+
 Após provisionar, validar também acesso TLS a partir de um Pod na origem autorizada e bloqueio de uma origem sem SG permitido. Conferir private/encrypted, backups, ausência de valores no plano/estado e drift final. Essas evidências ainda estão pendentes.
 
 ## DBeaver por túnel SSM

@@ -50,6 +50,16 @@ def bootstrap(settings, value):
                 raise ValueError("Application role has unexpected elevated privileges")
             if conn.execute("SELECT 1 FROM pg_auth_members m JOIN pg_roles r ON r.oid=m.member WHERE r.rolname=%s", (name,)).fetchone():
                 raise ValueError("Application role has unexpected memberships")
+            # Also reject principals that can inherit or assume the application
+            # role. Only the maintenance administrator may hold this membership.
+            if conn.execute(
+                "SELECT 1 FROM pg_auth_members m "
+                "JOIN pg_roles granted ON granted.oid=m.roleid "
+                "JOIN pg_roles member ON member.oid=m.member "
+                "WHERE granted.rolname=%s AND member.rolname<>%s",
+                (name, master["username"]),
+            ).fetchone():
+                raise ValueError("Application role has unexpected members")
             conn.execute(sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(sql.Identifier(name), sql.Identifier(master["username"])))
         for name in DATABASES:
             owner = conn.execute("SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname=%s", (name,)).fetchone()
