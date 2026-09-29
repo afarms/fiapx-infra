@@ -19,13 +19,13 @@ A arquitetura aparece em duas visões complementares: **acesso à aplicação e 
 
 ### 1. Acesso à aplicação e dados
 
-Leitura da esquerda para a direita: usuário, entrada HTTPS, aplicações e persistência. O S3 do frontend serve arquivos estáticos, enquanto o S3 de mídia guarda originais e ZIPs privados.
+Leitura da esquerda para a direita: usuário, entrada HTTPS, aplicações e persistência. O S3 do frontend serve arquivos estáticos, enquanto o S3 de mídia guarda originais e ZIPs privados. A entrada é proposta: [opções HTTPS](../operations/public-api.md); CloudFront pode ser dispensado para a primeira API com domínio e ALB HTTPS.
 
 ```mermaid
 flowchart LR
     USER["Navegador<br/>HTML e JavaScript"] -->|HTTPS| CF["CloudFront"]
     CF -->|"Frontend privado via OAC"| WEB[("S3<br/>Frontend")]
-    CF -->|"/api/* sem cache"| ALB["ALB<br/>Origem HTTPS"]
+    CF -->|"APIs sem cache; rotas a definir"| ALB["ALB<br/>Entrada planejada"]
 
     subgraph EKS["Amazon EKS - três microsserviços"]
         direction TB
@@ -55,7 +55,7 @@ flowchart LR
 
 **Conexões internas omitidas para legibilidade:** vídeos e processamento consultam identidade conforme seus contratos. A obtenção segura do destinatário da Lambda ainda será definida. ALB encaminha rotas aos serviços HTTP, sem expor o worker ou criar uma API de notificações. O detalhamento das filas aparece abaixo; apenas trabalho e resultados estão provisionados no estado atual.
 
-**Limites de rede:** ALB fica na camada de entrada da VPC, workloads e RDS na camada privada. CloudFront, S3 e SQS são serviços AWS representados fora do bloco EKS, não Pods. O desenho é lógico e não representa subnets ou AZs em escala. A origem HTTPS do ALB requer domínio/certificado válido.
+**Limites de rede:** workloads e RDS ficam privados. O ALB poderá ser público com ACM/domínio ou privado via CloudFront VPC origin; decisão de entrada pendente. CloudFront, S3 e SQS não são Pods. O desenho não comprova TLS no trecho de origem nem recursos já provisionados.
 
 ### 2. Implantação e operação
 

@@ -109,7 +109,7 @@ Para o incremento de rede/ECR, instalar as políticas adicionais de [rede e regi
 - Plano obsoleto ou apply parcial: corrigir a causa e executar novamente, gerando novo plano.
 - Mudanças na verificação final: investigar drift; o check permanece vermelho.
 
-OIDC, backend, bucket de mídia, filas de processamento/resultados, rede, ECR, EKS privado e administração SSM já tiveram execução real validada. RDS privado e bootstrap dos bancos estão implementados localmente; antes do próximo PR, criar o secret único e instalar a política adicional conforme o [runbook do banco](private-database.md). O workflow executa o documento SSM após o apply para configurar os bancos e conferir acesso e isolamento. Provisionamento RDS, demais filas, publicação das imagens ECR e deploy das aplicações continuam pendentes. Os serviços mantêm seus próprios workflows de testes e build.
+OIDC, backend, mídia, filas de trabalho/resultados, rede, ECR, EKS privado, SSM, RDS e bootstrap dos três bancos possuem execução real validada. Os três serviços publicaram imagens e concluíram rollout pelo GitHub Actions. Ver [deploy das aplicações](application-delivery.md). Acesso público HTTPS, frontend, notificações e ensaios integrados permanecem pendentes.
 
 ## Referências oficiais
 

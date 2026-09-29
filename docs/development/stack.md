@@ -1,6 +1,6 @@
 # Stack e política de versões
 
-Estado: identidade, upload, processamento, consultas, download e limpeza implementados e integrados. Backend, mídia, filas trabalho/resultados, DLQs e roles locais provisionados. Deploy das aplicações e validação integrada na cloud pendentes; notificação por e-mail será implementada ao final.
+Estado: identidade, upload, processamento, consultas, download e limpeza implementados e integrados. Backend, mídia, filas trabalho/resultados, DLQs e roles locais provisionados. Deploy dos três serviços no EKS concluído; acesso público e validação integrada na cloud pendentes; notificação por e-mail será implementada ao final.
 
 | Item | Decisão / estado |
 | --- | --- |
@@ -17,7 +17,7 @@ Estado: identidade, upload, processamento, consultas, download e limpeza impleme
 | GitHub Actions | Serviços com CI própria; infraestrutura com workflow único de validação/plan/apply no PR; OIDC sem chaves permanentes |
 | AWS | us-east-1; EKS com dois nós Spot Ready, RDS privado e acesso SSM provisionados; TLS EKS → RDS validado |
 | Secrets Manager | fiapx/runtime criado; credenciais SQL distintas; deploy projeta somente os campos próprios em Secrets Kubernetes; rotação explícita |
-| Mensageria | Trabalho/DLQ Standard definidos em Terraform: retenção 4/14 dias, maxReceiveCount 5, visibilidade 120 s; demais filas planejadas |
+| Mensageria | Trabalho/DLQ Standard definidos em Terraform: retenção 4/14 dias, maxReceiveCount 5, visibilidade 120 s; fila de resultados/DLQ também provisionada; notificações e controle de exclusão planejados |
 | Arquivos | S3 privado de mídia provisionado; upload, download e limpeza implementados |
 | Autenticação | Serviço próprio, BCrypt, JWT RS256 de 30 minutos, verificação de conta/versão a cada consulta protegida; sem renovação automática |
 | Processamento | FFmpeg empacotado no worker; implementação e testes locais concluídos, validação integrada AWS pendente |
@@ -35,7 +35,7 @@ Domain/gateways/use cases permanecem no core. Entity, mapper, adapter e reposito
 
 Executar `make verify` no repositório correspondente. Nos serviços Java, compila, testa, empacota e verifica cobertura; na infraestrutura, verifica formatação e configuração Terraform sem inicializar o backend remoto. `make install` dos serviços também instala o artefato no cache Maven local.
 
-CI dos serviços executa unit-tests e, após sucesso, container-build e validação de manifests k8s/. Push/main publica ECR com SHA completo e aplica os YAMLs por kubectl no runner GitHub, usando digest e túnel SSM para a API privada. HPA usa CPU via Metrics Server; Deployment não declara replicas. Ativação e rollout real ainda pendentes. Dockerfile usa package -DskipTests; a imagem final contém JRE e aplicação. Actions de infraestrutura são fixadas por SHA.
+CI dos serviços executa unit-tests e, após sucesso, container-build e validação de manifests k8s/. Push/main publica ECR com SHA completo e aplica os YAMLs por kubectl no runner GitHub, usando digest e túnel SSM para a API privada. HPA usa CPU via Metrics Server; Deployment não declara replicas. Ativação e rollout real concluídos nos três serviços; ensaios integrados ainda pendentes. Dockerfile usa package -DskipTests; a imagem final contém JRE e aplicação. Actions de infraestrutura são fixadas por SHA.
 
 Integração local de banco, migrations e identidade/vídeos foi exercitada, mas não constitui suíte E2E automatizada na CI. Mensageria, FFmpeg e fluxo completo com S3 ainda precisam de validação. Mocks não comprovam esses contratos reais.
 
