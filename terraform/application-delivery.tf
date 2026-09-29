@@ -75,7 +75,7 @@ resource "aws_iam_role_policy" "service_delivery" {
       { Effect = "Allow", Action = ["ecr:DescribeImages", "ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload", "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage"], Resource = aws_ecr_repository.service[each.key].arn },
       { Effect = "Allow", Action = ["eks:DescribeCluster"], Resource = aws_eks_cluster.application.arn },
       { Effect = "Allow", Action = ["ssm:StartSession"], Resource = aws_ssm_document.eks_tunnel.arn },
-      { Effect = "Allow", Action = ["ssm:StartSession"], Resource = aws_instance.administration.arn, Condition = { Bool = { "ssm:SessionDocumentAccessCheck" = "true" } } },
+      { Effect = "Allow", Action = ["ssm:StartSession"], Resource = aws_instance.administration.arn, Condition = { BoolIfExists = { "ssm:SessionDocumentAccessCheck" = "true" } } },
       { Effect = "Allow", Action = ["ssm:TerminateSession"], Resource = "arn:aws:ssm:us-east-1:${data.aws_caller_identity.current.account_id}:session/*", Condition = { StringLike = { "ssm:resourceTag/aws:ssmmessages:session-id" = "$${aws:userid}*" } } },
       { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.runtime.arn }
     ]
