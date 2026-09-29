@@ -2,6 +2,48 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "TerminateOwnedAdministration",
+      "Effect": "Allow",
+      "Action": "ec2:TerminateInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "CancelOwnedAdministrationRequest",
+      "Effect": "Allow",
+      "Action": "ec2:CancelSpotInstanceRequests",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:spot-instances-request/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
+      "Sid": "UseAdministrationTemplate",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:ResourceTag/Project": "fiapx",
+          "ec2:ResourceTag/ManagedBy": "terraform",
+          "ec2:ResourceTag/Name": "fiapx-administration"
+        }
+      }
+    },
+    {
       "Sid": "CreateTaggedAdministrationRules",
       "Effect": "Allow",
       "Action": ["ec2:AuthorizeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress"],

@@ -54,6 +54,17 @@ resource "aws_ssm_document" "administration_shell" {
   })
 }
 
+# aws_instance tags the instance/volume, but not the Spot request itself.
+# Tag it at launch so cancellation can be authorized by ownership on replacement.
+resource "aws_launch_template" "administration" {
+  name = "fiapx-administration"
+  tags = { Name = "fiapx-administration" }
+  tag_specifications {
+    resource_type = "spot-instances-request"
+    tags          = { Name = "fiapx-administration", Project = "fiapx", ManagedBy = "terraform" }
+  }
+}
+
 resource "aws_instance" "administration" {
   # AL2023 2023.12.20260918.0, verified AWS-owned x86_64 AMI in us-east-1.
   ami                         = "ami-0fef201115eefe936"
@@ -65,6 +76,11 @@ resource "aws_instance" "administration" {
   user_data                   = file("${path.module}/bootstrap/administration.sh")
   user_data_replace_on_change = true
   tags                        = { Name = "fiapx-administration" }
+
+  launch_template {
+    id      = aws_launch_template.administration.id
+    version = tostring(aws_launch_template.administration.latest_version)
+  }
 
   instance_market_options {
     market_type = "spot"

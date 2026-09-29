@@ -125,6 +125,7 @@
       "Effect": "Allow",
       "Action": [
         "ssm:CreateDocument",
+        "ssm:DeleteDocument",
         "ssm:DescribeDocument",
         "ssm:DescribeDocumentPermission",
         "ssm:GetDocument",

@@ -64,6 +64,10 @@ Port forwarding não registra consultas nem conteúdo do túnel no log de sessã
 
 ## Encerramento
 
+O bootstrap usa user_data_replace_on_change: alterações relevantes podem substituir a máquina e encerrar sessões. O pipeline pode cancelar a requisição Spot e terminar a instância somente em us-east-1, na conta configurada, com as três tags Project=fiapx, ManagedBy=terraform e Name=fiapx-administration. O Launch Template aplica essas tags à requisição Spot no lançamento; aws_instance sozinho não as propaga. Não remover as tags antes da substituição. A requisição inicial, criada antes desse template, recebeu as mesmas tags após conferência de vínculo com a instância administrativa.
+
+O provider cancela primeiro a requisição Spot persistente e depois termina a instância. Isso evita que a requisição antiga permaneça ativa. A política de controle também permite DeleteDocument somente em fiapx-administration-shell para seu ciclo de recriação; não autoriza exclusão de documentos genéricos. Dados locais são descartáveis e devem ficar fora dessa máquina.
+
 Interromper a máquina não remove seu volume ou os demais recursos do ambiente. No encerramento definitivo, planejar a remoção da requisição Spot persistente junto da instância, acesso EKS, profile/role, documento e SG. Não há destroy automático neste incremento; não armazenar dados que precisem sobreviver nessa máquina.
 
 Referências: [sessões e port forwarding](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html), [documento de preferências](https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-create-preferences-cli.html), [SSM Agent em AMIs](https://docs.aws.amazon.com/systems-manager/latest/userguide/ami-preinstalled-agent.html).
