@@ -165,6 +165,52 @@
           "aws:RequestedRegion": "us-east-1"
         }
       }
+    },
+    {
+      "Sid": "UseExactNodeLaunchDependencies",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": [
+        "arn:aws:ec2:us-east-1::image/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:network-interface/*",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/PRIVATE_SUBNET_A_ID",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:subnet/PRIVATE_SUBNET_B_ID",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:security-group/EKS_CLUSTER_SECURITY_GROUP_ID",
+        "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/EKS_LAUNCH_TEMPLATE_ID"
+      ],
+      "Condition": {
+        "StringEquals": { "aws:RequestedRegion": "us-east-1" },
+        "ArnEquals": { "ec2:LaunchTemplate": "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/EKS_LAUNCH_TEMPLATE_ID" }
+      }
+    },
+    {
+      "Sid": "LaunchConfiguredNodeTypes",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:InstanceType": ["m6i.large", "m6a.large", "m5.large"],
+          "ec2:MetadataHttpTokens": "required"
+        },
+        "ArnEquals": { "ec2:LaunchTemplate": "arn:aws:ec2:us-east-1:ACCOUNT_ID:launch-template/EKS_LAUNCH_TEMPLATE_ID" }
+      }
+    },
+    {
+      "Sid": "TagNodesAndVolumesAtLaunch",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": ["arn:aws:ec2:us-east-1:ACCOUNT_ID:instance/*", "arn:aws:ec2:us-east-1:ACCOUNT_ID:volume/*"],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1",
+          "ec2:CreateAction": "RunInstances",
+          "aws:RequestTag/Project": "fiapx",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
     }
   ]
 }
